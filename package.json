@@ -1,0 +1,12 @@
+{
+  "name": "Messenger_Pay",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:Jim-CTChen/Messenger_Pay.git",
+  "author": "Jim-CTChen <b07901036@ntu.edu.tw>",
+  "license": "MIT",
+  "scripts": {
+    "start": "cd frontend && yarn start",
+    "server": "cd backend && yarn server"
+  }
+}
