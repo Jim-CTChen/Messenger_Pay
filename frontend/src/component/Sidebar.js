@@ -1,74 +1,130 @@
-import React, { useState, useEffect } from 'react'
+import React from 'react';
+import PropTypes from 'prop-types';
 import clsx from 'clsx';
-import { useHistory, useLocation } from 'react-router-dom'
-import { makeStyles } from '@material-ui/core/styles';
-import { Drawer, List, ListItem } from '@material-ui/core'
+import { useHistory } from 'react-router-dom'
+import { withStyles } from '@material-ui/core/styles';
+import Divider from '@material-ui/core/Divider';
+import Drawer from '@material-ui/core/Drawer';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemText from '@material-ui/core/ListItemText';
+import HomeIcon from '@material-ui/icons/Home';
+import Hidden from '@material-ui/core/Hidden'
+
 import route from '../constants/route'
 
-const useStyles = makeStyles({
-  list: {
-    width: 250,
+const styles = (theme) => ({
+  categoryHeader: {
+    paddingTop: theme.spacing(2),
+    paddingBottom: theme.spacing(2),
   },
-  fullList: {
-    width: 'auto',
+  categoryHeaderPrimary: {
+    color: theme.palette.common.white,
+  },
+  item: {
+    paddingTop: 1,
+    paddingBottom: 1,
+    color: 'rgba(255, 255, 255, 0.7)',
+    '&:hover,&:focus': {
+      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    },
+  },
+  itemCategory: {
+    backgroundColor: '#232f3e',
+    boxShadow: '0 -1px 0 #404854 inset',
+    paddingTop: theme.spacing(2),
+    paddingBottom: theme.spacing(2),
+  },
+  firebase: {
+    fontSize: 24,
+    color: theme.palette.common.white,
+  },
+  itemActiveItem: {
+    color: '#4fc3f7',
+  },
+  itemPrimary: {
+    fontSize: 'inherit',
+  },
+  itemIcon: {
+    minWidth: 'auto',
+    marginRight: theme.spacing(2),
+  },
+  divider: {
+    marginTop: theme.spacing(2),
   },
 });
 
 function Sidebar(props) {
-  const { isSidebarCollapse, toggleSidebar } = props
-  const history = useHistory()
-  const classes = useStyles();
+  const { classes, ...other } = props;
 
-  const handleClickNavItem = (navItem) => {
-    history.push(navItem.url)
-  }
-
-  const list = () => {
-    <div
-      // className={clsx(classes.list, {
-      //   [classes.fullList]: anchor === 'top' || anchor === 'bottom',
-      // })}
-      className={clsx(classes.list, {[classes.fullList]: false})}
-      role="presentation"
-      onClick={toggleSidebar()}
-      onKeyDown={toggleSidebar()}
-    >
-      <List>
-        {route.nav_items.map(navItem => (
-          <ListItem key={navItem.name} onClick={() => handleClickNavItem(navItem)}>
-            {navItem.name}
-          </ListItem>
-          // <ListItem button key={text}>
-          //   <ListItemIcon>{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}</ListItemIcon>
-          //   <ListItemText primary={text} />
-          // </ListItem>
-        ))}
-      </List>
-      {/* <Divider />
-      <List>
-        {['All mail', 'Trash', 'Spam'].map((text, index) => (
-          <ListItem button key={text}>
-            <ListItemIcon>{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}</ListItemIcon>
-            <ListItemText primary={text} />
-          </ListItem>
-        ))}
-      </List> */}
-    </div>
-  }
+  const history = useHistory();
 
   return (
-    <>
-      <Drawer
-        anchor="left"
-        open={isSidebarCollapse}
-        onClose={() => toggleSidebar(false)}
-      >
-        <List>
-          {list()}
-        </List>
-      </Drawer>
-    </>
-  )
+    <Drawer variant="permanent" {...other}>
+      <List disablePadding>
+        <Hidden smUp>
+          <ListItem className={clsx(classes.firebase, classes.item, classes.itemCategory)}>
+            使用者資訊
+          </ListItem>
+        </Hidden>
+        <ListItem 
+          className={clsx(classes.item, classes.itemCategory)} 
+          button
+          onClick={() => history.push('/home')}
+        >
+          <ListItemIcon className={classes.itemIcon}>
+            <HomeIcon />
+          </ListItemIcon>
+          <ListItemText
+            classes={{
+              primary: classes.itemPrimary,
+            }}
+          >
+            首頁
+          </ListItemText>
+        </ListItem>
+        {route.nav_items.map(({ categoryName, items }) => (
+          <React.Fragment key={categoryName}>
+            <ListItem className={classes.categoryHeader}>
+              <ListItemText
+                classes={{
+                  primary: classes.categoryHeaderPrimary,
+                }}
+              >
+                {categoryName}
+              </ListItemText>
+            </ListItem>
+            {
+              items.map(({ name: childId, icon, active, url }) => (
+                <ListItem
+                  key={childId}
+                  button
+                  className={clsx(classes.item, active && classes.itemActiveItem)}
+                  onClick={ () => history.push(url)}
+                >
+                  <ListItemIcon className={classes.itemIcon}>{icon}</ListItemIcon>
+                  <ListItemText
+                    classes={{
+                      primary: classes.itemPrimary,
+                    }}
+                  >
+                    {childId}
+                  </ListItemText>
+                </ListItem>
+              ))
+            }
+
+            <Divider className={classes.divider} />
+          </React.Fragment>
+        ))}
+      </List>
+    </Drawer>
+  );
 }
 
-export default Sidebar;
+Sidebar.propTypes = {
+  classes: PropTypes.object.isRequired,
+};
+
+export default withStyles(styles)(Sidebar);
