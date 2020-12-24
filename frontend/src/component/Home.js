@@ -11,8 +11,12 @@ import { withStyles } from '@material-ui/core/styles';
 import Divider from '@material-ui/core/Divider'
 import Avatar from '@material-ui/core/Avatar';
 import Box from '@material-ui/core/Box'
+import IconButton from '@material-ui/core/IconButton';
+import AddIcon from '@material-ui/icons/Add';
+import Button from '@material-ui/core/Button'
 import Typography from '@material-ui/core/Typography'
 import db from '../constants/db'
+import { Icon } from '@material-ui/core';
 
 const styles = (theme) => ({
   paper: {
@@ -23,9 +27,9 @@ const styles = (theme) => ({
     backgroundColor: '#e4e4e4',
     height: '2px'
   },
-  list: {
-    margin: '5px'
-  },
+  // list: {
+  //   margin: '5px',
+  // },
   listItem: {
     margin: '3px',
     display: 'flex'
@@ -38,7 +42,7 @@ const styles = (theme) => ({
   },
   green: {
     color: 'green'
-  }
+  },
 });
 
 const FILTER = [
@@ -46,18 +50,6 @@ const FILTER = [
   { key: 1, label: '群組', collection: 'group' },
   { key: 2, label: '活動', collection: 'activity' }
 ]
-
-const person = (avatarSrc, name) => {
-  return (
-    <Box component="span" style={{display: 'flex'}} >
-      { avatarSrc ? 
-        <Avatar alt={name} src={avatarSrc} /> :
-        <Avatar>{name[0]}</Avatar> 
-      }
-      <Typography >{name}</Typography>
-    </Box>
-  )
-}
 
 function Home(props) {
   const { classes } = props;
@@ -71,6 +63,7 @@ function Home(props) {
 
   return (
     <Paper className={classes.paper} color="primary">
+      
       <Tabs
         className={classes.tabs}
         value={tabValue}
@@ -79,18 +72,27 @@ function Home(props) {
         onChange={handleTabChange}
         aria-label="disabled tabs example"
       >
-      {
-        FILTER.map(item => 
-          <Tab
-            className={classes.tabs}
-            value={item.key}
-            key={item.key}
-            label={item.label}
-          />
-        )
-      }
+        {
+          FILTER.map(item => 
+            <Tab
+              className={classes.tabs}
+              value={item.key}
+              key={item.key}
+              label={item.label}
+            />
+          )
+        }
       </Tabs>
       <Divider className={classes.divider}/>
+      <Box mx={2} mt={1} style={{ display: 'flex', justifyContent: 'flex-end'}}>
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<AddIcon />}
+        >
+          新增
+        </Button>
+      </Box>
       <List className={classes.list}>
         {
           db[`${filter.collection}`].map(ele => 
@@ -121,6 +123,18 @@ function Home(props) {
           )
         }
       </List>
+      <IconButton
+        onClick={() => {}}
+        style={{ 
+          background: 'white',
+          position: 'fixed',
+          right: '45px',
+          bottom: '45px',
+          boxShadow: '1px 1px 1px rgba(0, 0, 0, 0.7)'
+        }}
+      >
+        <AddIcon />
+      </IconButton>
     </Paper>
   );
 }

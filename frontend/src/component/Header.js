@@ -1,4 +1,4 @@
-import React from 'react';
+import  { React, useState } from 'react';
 import PropTypes from 'prop-types';
 import AppBar from '@material-ui/core/AppBar';
 import Avatar from '@material-ui/core/Avatar';
@@ -15,6 +15,8 @@ import Tabs from '@material-ui/core/Tabs';
 import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
+import Menu from '@material-ui/core/Menu'
+import MenuItem from '@material-ui/core/MenuItem'
 import { withStyles } from '@material-ui/core/styles';
 
 const lightColor = 'rgba(255, 255, 255, 0.7)';
@@ -47,8 +49,10 @@ const styles = (theme) => ({
 function Header(props) {
   const { classes, onDrawerToggle } = props;
 
+  const [anchorEl, setAnchorEl] = useState(null)
+
   return (
-    <React.Fragment>
+    <>
       <Hidden smUp>
         <AppBar color="primary" position="sticky" elevation={0} className={classes.appBar}>
           <Toolbar>
@@ -92,7 +96,7 @@ function Header(props) {
               </Grid>
               <Grid item>
                 <Tooltip title="Help">
-                  <IconButton color="inherit">
+                  <IconButton color="inherit" onClick={e => setAnchorEl(e.currentTarget)}>
                     <HelpIcon />
                   </IconButton>
                 </Tooltip>
@@ -106,14 +110,37 @@ function Header(props) {
               </Grid>
               <Grid item>
                 <IconButton color="inherit" className={classes.iconButtonAvatar}>
-                  <Avatar src="/static/images/avatar/1.jpg" alt="My Avatar" />
+                  <Avatar 
+                    src="/static/images/avatar/1.jpg"
+                    alt="My Avatar"
+                    onClick={e => setAnchorEl(e.currentTarget)}  
+                  />
                 </IconButton>
               </Grid>
             </Grid>
           </Toolbar>
         </AppBar>
+        <Menu
+          id="account-menu"
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={() => setAnchorEl(null)}
+          keepMounted
+          getContentAnchorEl={null}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'center'
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'center'
+          }}
+        >
+          <MenuItem onClick={() => setAnchorEl(null)}>Account</MenuItem>
+          <MenuItem onClick={() => setAnchorEl(null)}>Logout</MenuItem>
+        </Menu>
       </Hidden>
-    </React.Fragment>
+    </>
   );
 }
 

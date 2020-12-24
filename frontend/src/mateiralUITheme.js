@@ -14,7 +14,11 @@ let theme = createMuiTheme({
       fontSize: 26,
       letterSpacing: 0.5,
     },
-    fontSize: 18
+    fontSize: 18,
+    // fontFamily: [
+    //   '微軟正黑體',
+    //   'Roboto',
+    // ].join(',')
   },
   shape: {
     borderRadius: 8,
