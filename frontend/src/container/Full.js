@@ -6,7 +6,7 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 import Hidden from '@material-ui/core/Hidden';
 import Typography from '@material-ui/core/Typography';
 import Link from '@material-ui/core/Link';
-import Navigator from '../component/Sidebar';
+import Sidebar from '../component/Sidebar';
 import Content from '../component/Home';
 import Header from '../component/Header';
 import route from '../constants/route'
@@ -68,7 +68,7 @@ function Full(props) {
         <CssBaseline />
         <nav className={classes.drawer}>
           <Hidden smUp implementation="js">
-            <Navigator
+            <Sidebar
               PaperProps={{ style: { width: drawerWidth } }}
               variant="temporary"
               open={mobileOpen}
@@ -76,7 +76,7 @@ function Full(props) {
             />
           </Hidden>
           <Hidden xsDown implementation="css">
-            <Navigator PaperProps={{ style: { width: drawerWidth } }} />
+            <Sidebar PaperProps={{ style: { width: drawerWidth } }} />
           </Hidden>
         </nav>
         <div className={classes.app}>
