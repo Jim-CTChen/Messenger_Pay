@@ -5,8 +5,8 @@ import { User } from '../model/models'
 import handleMissing from './utility'
 
 api.get('/', async (req, res) => {
-  const { name } = req.query;
-  if (!name) {
+  const { username } = req.query;
+  if (!username) {
     const user = await User.find();
     return res.status(200).send({
       success: true,
@@ -15,7 +15,7 @@ api.get('/', async (req, res) => {
     });
   }
   else {
-    const user = await User.findOne({ name: name });
+    const user = await User.findOne({ username: username });
     return res.status(200).send({
       success: true,
       error: null,

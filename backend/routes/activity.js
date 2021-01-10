@@ -4,9 +4,13 @@ const express = require("express");
 const api = express.Router();
 
 api.get('/', async (req, res) => {
-  const { name } = req.query;
-  if (!name) {
-    const activities = await Activity.find().populate('creditor', 'name').populate('debtor', 'name');
+  const { username } = req.query;
+  if (!username) {
+    const activities = await Activity
+      .find()
+      .populate('creditor', 'name')
+      .populate('debtor', 'name')
+      .sort({ timestamp: 'desc' });
     return res.status(200).send({
       success: true,
       error: null,
@@ -14,18 +18,19 @@ api.get('/', async (req, res) => {
     })
   }
   else {
-    const user = await User.findOne({ name: name });
+    const user = await User.findOne({ username: username });
     if (!user) {
       return res.status(200).send({
         success: false,
-        error: `User ${name} not found!`,
+        error: `User ${username} not found!`,
         data: null
       });
     }
     const activities = await Activity
       .find({ $or: [{ creditor: user._id }, { debtor: user._id }] })
       .populate('creditor', 'name')
-      .populate('debtor', 'name');
+      .populate('debtor', 'name')
+      .sort({ timestamp: 'desc' });
     return res.status(200).send({
       success: true,
       error: null,
@@ -44,8 +49,8 @@ api.post('/', async (req, res) => {
       data: mull
     });
   }
-  const { creditor, debtor, amount } = req.body;
-  const creditorUser = await User.findOne({ name: creditor });
+  const { creditor, debtor, amount, description } = req.body;
+  const creditorUser = await User.findOne({ username: creditor });
   if (!creditorUser) {
     return res.status(200).send({
       success: false,
@@ -53,7 +58,7 @@ api.post('/', async (req, res) => {
       data: null
     });
   }
-  const debtorUser = await User.findOne({ name: debtor });
+  const debtorUser = await User.findOne({ username: debtor });
   if (!debtorUser) {
     return res.status(200).send({
       success: false,
@@ -64,7 +69,8 @@ api.post('/', async (req, res) => {
   const newActivity = new Activity({
     creditor: creditorUser._id,
     debtor: debtorUser._id,
-    amount: amount
+    amount: amount,
+    description: description
   });
   await newActivity.save();
   return res.status(200).send({

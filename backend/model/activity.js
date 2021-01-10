@@ -12,6 +12,12 @@ const ActivitySchema = new Schema({
   amount: {
     type: Number,
     default: 0
+  },
+  timestamp: {
+    type: Date, default: Date.now
+  },
+  description: {
+    type: String
   }
 })
 
