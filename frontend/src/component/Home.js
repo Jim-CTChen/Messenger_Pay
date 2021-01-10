@@ -18,6 +18,13 @@ import Button from '@material-ui/core/Button'
 import Typography from '@material-ui/core/Typography'
 import db from '../constants/db'
 import { Icon } from '@material-ui/core';
+// Dialog
+import TextField from '@material-ui/core/TextField';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
 
 import { AuthContext } from '../AuthContext'
 
@@ -51,13 +58,14 @@ const styles = (theme) => ({
 const FILTER = [
   { key: 0, label: '好友', collection: 'person' },
   { key: 1, label: '群組', collection: 'group' },
-  { key: 2, label: '活動', collection: 'activity' }
+  // { key: 2, label: '活動', collection: 'activity' }
 ]
 
 function Home(props) {
   const { classes } = props;
   const [tabValue, setTabValue] = useState(0)
   const [filter, setFilter] = useState(FILTER[0])
+  const [open, setOpen] = useState(false);
   const history = useHistory();
   const authContext = useContext(AuthContext);
 
@@ -67,14 +75,22 @@ function Home(props) {
   }
 
   const handleIsLogin = () => {
-    if (!authContext.currentUser.isLogin) {
-      history.replace('/Login');
-    }
+    // if (!authContext.currentUser.isLogin) {
+    //   history.replace('/Login');
+    // }
   }
 
   useEffect(() => {
     handleIsLogin();
   }, [history])
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
 
   return (
     <Paper className={classes.paper} color="primary">
@@ -102,6 +118,7 @@ function Home(props) {
         <Button
           variant="contained"
           color="primary"
+          onClick={handleClickOpen}
           startIcon={<AddIcon />}
         >
           新增
@@ -149,7 +166,33 @@ function Home(props) {
       >
         <AddIcon />
       </IconButton>
+      <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
+        <DialogTitle id="form-dialog-title">Subscribe</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            To subscribe to this website, please enter your email address here. We will send updates
+            occasionally.
+          </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="name"
+            label="Email Address"
+            type="email"
+            fullWidth
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleClose} color="primary">
+            Subscribe
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Paper>
+    
   );
 }
 
