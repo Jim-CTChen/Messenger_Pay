@@ -25,6 +25,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import MenuItem from '@material-ui/core/MenuItem';
 
 import { AuthContext } from '../AuthContext'
 
@@ -61,11 +62,19 @@ const FILTER = [
   // { key: 2, label: '活動', collection: 'activity' }
 ]
 
+const sign = [
+  { type: '欠我', value: false },
+  { type: '我欠', value: true  }
+]
+
 function Home(props) {
   const { classes } = props;
   const [tabValue, setTabValue] = useState(0)
   const [filter, setFilter] = useState(FILTER[0])
-  const [open, setOpen] = useState(false);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [name, setName] = useState('');
+  const [amountSign, setAmountSign] = useState(false);
+  const [amount, setAmount] = useState(0);
   const history = useHistory();
   const authContext = useContext(AuthContext);
 
@@ -75,21 +84,46 @@ function Home(props) {
   }
 
   const handleIsLogin = () => {
-    // if (!authContext.currentUser.isLogin) {
-    //   history.replace('/Login');
-    // }
+    if (!authContext.currentUser.isLogin) {
+      history.replace('/Login');
+    }
   }
 
   useEffect(() => {
     handleIsLogin();
   }, [history])
+  
+  const handleNameChange = (event) => {
+    setName(event.target.value)
+  }
+
+  const handleSignChange = (event) => {
+    setAmountSign(event.target.value)
+  }
+
+  const handleAmountChange = (event) => {
+    setAmount(event.target.value)
+  }
 
   const handleClickOpen = () => {
-    setOpen(true);
+    setOpenDialog(true)
   };
 
   const handleClose = () => {
-    setOpen(false);
+    setOpenDialog(false)
+  };
+
+  const handleSubmit = () => { 
+    const newSubmit = {
+      name: name,
+      amount: amountSign ? (-1)*amount : amount,
+      avatarSrc: null
+    }
+    db[`${filter.collection}`].push(newSubmit)
+    setName('')
+    setAmountSign(false)
+    setAmount(0)
+    setOpenDialog(false)
   };
 
   return (
@@ -166,28 +200,57 @@ function Home(props) {
       >
         <AddIcon />
       </IconButton>
-      <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
-        <DialogTitle id="form-dialog-title">Subscribe</DialogTitle>
+      <Dialog open={openDialog} onClose={handleClose} aria-labelledby="form-dialog-title">
+        <DialogTitle id="form-dialog-title">訂立債務契約!</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            To subscribe to this website, please enter your email address here. We will send updates
-            occasionally.
-          </DialogContentText>
           <TextField
             autoFocus
+            required
             margin="dense"
             id="name"
-            label="Email Address"
-            type="email"
+            label="對象"
+            onChange={handleNameChange}
+            fullWidth
+          />
+        </DialogContent>
+        <DialogContent>
+          <TextField
+            select
+            margin="dense"
+            id="amountSign"
+            label="類別"
+            value={amountSign}
+            onChange={handleSignChange}
+          >
+            {sign.map((option) => (
+              <MenuItem key={option.value} value={option.value}>
+                {option.type}
+              </MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            required
+            margin="dense"
+            id="amount"
+            type="number"
+            label="金額"
+            onChange={handleAmountChange}
+          />
+        </DialogContent>
+        <DialogContent>
+          <TextField
+            margin="dense"
+            id="note"
+            label="備註"
             fullWidth
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose} color="primary">
-            Cancel
+            取消
           </Button>
-          <Button onClick={handleClose} color="primary">
-            Subscribe
+          <Button disabled={ name === "" | amount === 0 } onClick={handleSubmit} color="primary">
+            確認
           </Button>
         </DialogActions>
       </Dialog>
