@@ -7,7 +7,10 @@ import handleMissing from './utility'
 api.get('/', async (req, res) => {
   const { username } = req.query;
   if (!username) {
-    const user = await User.find();
+    const user = await User
+      .find()
+      .populate('friends.friend', 'name')
+      .populate('friends.balance');
     return res.status(200).send({
       success: true,
       error: null,
@@ -15,7 +18,10 @@ api.get('/', async (req, res) => {
     });
   }
   else {
-    const user = await User.findOne({ username: username });
+    let user = await User
+      .findOne({ username: username })
+      .populate('friends.friend', 'name')
+      .populate('friends.balance');
     return res.status(200).send({
       success: true,
       error: null,

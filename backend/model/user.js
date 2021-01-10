@@ -17,7 +17,14 @@ const UserSchema = new Schema({
     required: [true, 'name field is required.']
   },
   friends: [{
-    type: Schema.Types.ObjectId, ref: "user"
+    friend: {
+      type: Schema.Types.ObjectId, ref: "user",
+      required: [true, 'friend\'s id is required']
+    },
+    balance: {
+      type: Schema.Types.ObjectId, ref: "balance",
+      required: [true, 'friend\'s id is required']
+    }
   }],
   groups: [{
     type: Schema.Types.ObjectId, ref: "group"
