@@ -5,10 +5,19 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "server": "nodemon server.js"
+    "server": "nodemon --exec babel-node server.js"
   },
   "dependencies": {
+    "body-parser": "^1.19.0",
+    "dotenv-defaults": "^2.0.1",
     "express": "^4.17.1",
+    "mongoose": "^5.11.11",
     "nodemon": "^2.0.6"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.12.10",
+    "@babel/core": "^7.12.10",
+    "@babel/node": "^7.12.10",
+    "@babel/preset-env": "^7.12.11"
   }
 }
