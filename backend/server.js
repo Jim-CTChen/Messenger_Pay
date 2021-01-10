@@ -33,7 +33,7 @@ app.use(cors())
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use((req, res, next) => {
-  console.log('URL', req.baseUrl);
+  console.log('URL', req.method + ' ' + req.originalUrl);
   console.log('req body', req.body);
   console.log('req query', req.query);
   next();

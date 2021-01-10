@@ -7,9 +7,9 @@ api.get('/', async (req, res) => {
   const { username } = req.query;
   if (!username) {
     const activities = await Activity
-      .find()
-      .populate('creditor', 'name')
-      .populate('debtor', 'name')
+      .find({}, { '_id': 0, '__v': 0 })
+      .populate('creditor', 'name -_id')
+      .populate('debtor', 'name -_id')
       .sort({ timestamp: 'desc' });
     return res.status(200).send({
       success: true,
@@ -18,7 +18,8 @@ api.get('/', async (req, res) => {
     })
   }
   else {
-    const user = await User.findOne({ username: username });
+    const user = await User
+      .findOne({ username: username });
     if (!user) {
       return res.status(200).send({
         success: false,
@@ -27,9 +28,9 @@ api.get('/', async (req, res) => {
       });
     }
     const activities = await Activity
-      .find({ $or: [{ creditor: user._id }, { debtor: user._id }] })
-      .populate('creditor', 'name')
-      .populate('debtor', 'name')
+      .find({ $or: [{ creditor: user._id }, { debtor: user._id }] }, { '_id': 0, '__v': 0 })
+      .populate('creditor', 'name -_id')
+      .populate('debtor', 'name -_id')
       .sort({ timestamp: 'desc' });
     return res.status(200).send({
       success: true,
@@ -59,7 +60,6 @@ api.post('/', async (req, res) => {
   }
   const creditorUser = await User
     .findOne({ username: creditor });
-  // .populate('friends.friend', 'name');
   if (!creditorUser) {
     return res.status(200).send({
       success: false,

@@ -7,25 +7,40 @@ import handleMissing from './utility'
 api.get('/', async (req, res) => {
   const { username } = req.query;
   if (!username) {
-    const user = await User
-      .find()
-      .populate('friends.friend', 'name')
-      .populate('friends.balance');
+    const users = await User
+      .find({}, { '_id': 0 })
+      .select('name friends-_id')
+      .populate('friends.friend', 'name -_id')
+      .populate({
+        path: 'friends.balance',
+        select: '-_id -__v',
+        populate: [
+          { path: 'user1', select: 'name-_id', model: 'user' },
+          { path: 'user2', select: 'name-_id', model: 'user' }
+        ]
+      });
     return res.status(200).send({
       success: true,
       error: null,
-      data: user
+      data: users
     });
   }
   else {
-    let user = await User
+    const user = await User
       .findOne({ username: username })
       .populate('friends.friend', 'name')
       .populate('friends.balance');
+    const friends = user.friends.map(item => {
+      let balance = Number(item.balance.balance1to2);
+      if (String(item.balance.user1) !== String(user._id)) {
+        balance = -balance;
+      }
+      return { name: String(item.friend.name), balance: balance }
+    })
     return res.status(200).send({
       success: true,
       error: null,
-      data: user
+      data: { name: user.name, friends: friends }
     });
   }
 })
