@@ -1,4 +1,5 @@
-import { React, useState, useEffect} from 'react';
+import { React, useState, useEffect, useContext } from 'react';
+import { useHistory } from 'react-router-dom'
 import PropTypes from 'prop-types';
 import Paper from '@material-ui/core/Paper';
 import Tabs from '@material-ui/core/Tabs';
@@ -17,6 +18,8 @@ import Button from '@material-ui/core/Button'
 import Typography from '@material-ui/core/Typography'
 import db from '../constants/db'
 import { Icon } from '@material-ui/core';
+
+import { AuthContext } from '../AuthContext'
 
 const styles = (theme) => ({
   paper: {
@@ -53,17 +56,28 @@ const FILTER = [
 
 function Home(props) {
   const { classes } = props;
-  const [ tabValue, setTabValue ] = useState(0)
-  const [ filter, setFilter ] = useState(FILTER[0])
+  const [tabValue, setTabValue] = useState(0)
+  const [filter, setFilter] = useState(FILTER[0])
+  const history = useHistory();
+  const authContext = useContext(AuthContext);
 
   const handleTabChange = (e, value) => {
     setTabValue(value)
     setFilter(FILTER[value])
   }
 
+  const handleIsLogin = () => {
+    if (!authContext.currentUser.isLogin) {
+      history.replace('/Login');
+    }
+  }
+
+  useEffect(() => {
+    handleIsLogin();
+  }, [history])
+
   return (
     <Paper className={classes.paper} color="primary">
-      
       <Tabs
         className={classes.tabs}
         value={tabValue}
@@ -73,7 +87,7 @@ function Home(props) {
         aria-label="disabled tabs example"
       >
         {
-          FILTER.map(item => 
+          FILTER.map(item =>
             <Tab
               className={classes.tabs}
               value={item.key}
@@ -83,8 +97,8 @@ function Home(props) {
           )
         }
       </Tabs>
-      <Divider className={classes.divider}/>
-      <Box mx={2} mt={1} style={{ display: 'flex', justifyContent: 'flex-end'}}>
+      <Divider className={classes.divider} />
+      <Box mx={2} mt={1} style={{ display: 'flex', justifyContent: 'flex-end' }}>
         <Button
           variant="contained"
           color="primary"
@@ -95,28 +109,28 @@ function Home(props) {
       </Box>
       <List className={classes.list}>
         {
-          db[`${filter.collection}`].map(ele => 
+          db[`${filter.collection}`].map(ele =>
             <ListItem
               button
-              onClick={() => {}}
+              onClick={() => { }}
               key={ele.name}
               className={classes.listItem}
             >
-              { ele.avatarSrc ? 
+              {ele.avatarSrc ?
                 <Avatar alt={ele.name} src={ele.avatarSrc} /> :
-                <Avatar>{ele.name[0]}</Avatar> 
+                <Avatar>{ele.name[0]}</Avatar>
               }
               &nbsp;
               <ListItemText >{ele.name}</ListItemText>
               <Box display="inline" mr={10}>
                 {
                   ele.amount >= 0 ?
-                  <ListItemText className={classes.green}>
-                    {`+${ele.amount}`}
-                  </ListItemText> :
-                  <ListItemText className={classes.red}>
-                    {`${ele.amount}`}
-                  </ListItemText>
+                    <ListItemText className={classes.green}>
+                      {`+${ele.amount}`}
+                    </ListItemText> :
+                    <ListItemText className={classes.red}>
+                      {`${ele.amount}`}
+                    </ListItemText>
                 }
               </Box>
             </ListItem>
@@ -124,8 +138,8 @@ function Home(props) {
         }
       </List>
       <IconButton
-        onClick={() => {}}
-        style={{ 
+        onClick={() => { }}
+        style={{
           background: 'white',
           position: 'fixed',
           right: '45px',

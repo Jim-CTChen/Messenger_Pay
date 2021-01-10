@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Switch, Route, Redirect, useHistory } from 'react-router-dom'
 import PropTypes from 'prop-types';
 import { createMuiTheme, ThemeProvider, withStyles } from '@material-ui/core/styles';
-import { Switch, Route, Redirect, useHistory } from 'react-router-dom'
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Hidden from '@material-ui/core/Hidden';
 import Typography from '@material-ui/core/Typography';
@@ -56,7 +56,7 @@ const styles = {
 
 function Full(props) {
   const { classes } = props;
-  const [mobileOpen, setMobileOpen] = React.useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -83,7 +83,7 @@ function Full(props) {
           <Header onDrawerToggle={handleDrawerToggle} />
           <main className={classes.main}>
             <Switch>
-              { route.route.map(link =>
+              {route.route.map(link =>
                 <Route
                   exact
                   key={link.name}

@@ -1,4 +1,4 @@
-import  { React, useState } from 'react';
+import { React, useState, useContext } from 'react';
 import PropTypes from 'prop-types';
 import AppBar from '@material-ui/core/AppBar';
 import Avatar from '@material-ui/core/Avatar';
@@ -18,6 +18,8 @@ import Typography from '@material-ui/core/Typography';
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
 import { withStyles } from '@material-ui/core/styles';
+
+import { AuthContext } from '../AuthContext'
 
 const lightColor = 'rgba(255, 255, 255, 0.7)';
 
@@ -49,7 +51,8 @@ const styles = (theme) => ({
 function Header(props) {
   const { classes, onDrawerToggle } = props;
 
-  const [anchorEl, setAnchorEl] = useState(null)
+  const [anchorEl, setAnchorEl] = useState(null);
+  const { currentUser } = useContext(AuthContext);
 
   return (
     <>
@@ -110,10 +113,10 @@ function Header(props) {
               </Grid>
               <Grid item>
                 <IconButton color="inherit" className={classes.iconButtonAvatar}>
-                  <Avatar 
+                  <Avatar
                     src="/static/images/avatar/1.jpg"
-                    alt="My Avatar"
-                    onClick={e => setAnchorEl(e.currentTarget)}  
+                    alt={currentUser.name}
+                    onClick={e => setAnchorEl(e.currentTarget)}
                   />
                 </IconButton>
               </Grid>

@@ -35,23 +35,28 @@ api.post('/login', async (req, res) => {
     });
   }
   const { username, password } = req.body;
-  let result = await User.findOne({ username: username });
-  if (!result) {
+  let user = await User.findOne({ username: username });
+  if (!user) {
     return res.status(200).send({
       success: false,
       error: `Username ${username} not found!`,
       data: null
     });
   }
-  if (result.password !== password) {
+  if (user.password !== password) {
     return res.status(200).send({
       success: false,
       error: 'Password incorrect!',
       data: null
     });
   }
-
-  return res.status(200).send('Login Successfully!')
+  else {
+    return res.status(200).send({
+      success: true,
+      error: null,
+      data: user
+    });
+  }
 });
 
 api.post('/', async (req, res) => {
