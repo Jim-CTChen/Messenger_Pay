@@ -1,9 +1,10 @@
 import { Activity, User, Balance } from '../model/models'
 import handleMissing from './utility'
+import { ACTIVITY_TYPE } from '../constants/enum'
 const express = require("express");
 const api = express.Router();
 
-api.get('/', async (req, res) => {
+api.get('/all', async (req, res) => {
   const { username } = req.query;
   if (!username) {
     const activities = await Activity
@@ -40,6 +41,57 @@ api.get('/', async (req, res) => {
   }
 })
 
+api.get('/friend', async (req, res) => {
+  const requiredList = ['username', 'friendName'];
+  let missing = handleMissing(requiredList, req.query);
+  if (missing) {
+    return res.status(200).send({
+      success: false,
+      error: missing,
+      data: null
+    });
+  }
+  const { username, friendName } = req.query;
+  const user = await User.findOne({ username: username });
+  if (!user) {
+    return res.status(200).send({
+      success: false,
+      error: `User ${username} not found!`,
+      data: null
+    });
+  }
+  const friend = await User.findOne({ username: friendName });
+  if (!friend) {
+    return res.status(200).send({
+      success: false,
+      error: `User ${friendName} not found!`,
+      data: null
+    });
+  }
+  const activities = await Activity
+    .find({ $or: [{ creditor: user._id }, { debtor: user._id }] }, { '_id': 0, '__v': 0 })
+    .find({ $or: [{ creditor: friend._id }, { debtor: friend._id }] }, { '_id': 0, '__v': 0 })
+    .populate('creditor', 'name -_id')
+    .populate('debtor', 'name -_id')
+    .sort({ timestamp: 'desc' });
+  const activityList = activities.map(ele => {
+    let amount = 0;
+    if (ele.debtor.name === username) amount = -ele.amount;
+    else amount = ele.amount;
+    return {
+      amount: amount,
+      description: ele.description,
+      time: ele.timestamp,
+      type: ele.type,
+    }
+  })
+  return res.status(200).send({
+    success: true,
+    error: null,
+    data: activityList
+  })
+})
+
 api.post('/', async (req, res) => {
   const requiredList = ['creditor', 'debtor', 'amount'];
   let missing = handleMissing(requiredList, req.body);
@@ -50,7 +102,7 @@ api.post('/', async (req, res) => {
       data: null
     });
   }
-  const { creditor, debtor, amount, description } = req.body;
+  const { creditor, debtor, amount, description, type } = req.body;
   if (creditor === debtor) {
     return res.status(200).send({
       success: false,
@@ -84,10 +136,11 @@ api.post('/', async (req, res) => {
     String(ele.friend) === String(creditorUser._id)
   );
   if (!friend1 && !friend2) { // not created
+
     let newBalance = new Balance({
       user1: creditorUser._id,
       user2: debtorUser._id,
-      balance: Number(amount)
+      balance1to2: Number(amount)
     });
     creditorUser.friends.push({
       friend: debtorUser._id,
@@ -145,7 +198,8 @@ api.post('/', async (req, res) => {
     creditor: creditorUser._id,
     debtor: debtorUser._id,
     amount: Number(amount),
-    description: description
+    description: description,
+    type: (ACTIVITY_TYPE.includes(type)) ? type : 'PERSONAL'
   });
   await newActivity.save();
   return res.status(200).send({

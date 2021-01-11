@@ -40,7 +40,7 @@ api.get('/', async (req, res) => {
     return res.status(200).send({
       success: true,
       error: null,
-      data: { name: user.name, friends: friends }
+      data: { name: user.name, friends: friends, groups: user.groups }
     });
   }
 })

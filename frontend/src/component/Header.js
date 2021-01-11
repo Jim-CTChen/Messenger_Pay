@@ -1,4 +1,5 @@
 import { React, useState, useContext } from 'react';
+import { useHistory } from 'react-router-dom'
 import PropTypes from 'prop-types';
 import AppBar from '@material-ui/core/AppBar';
 import Avatar from '@material-ui/core/Avatar';
@@ -47,12 +48,18 @@ const styles = (theme) => ({
     borderColor: lightColor,
   },
 });
-
 function Header(props) {
   const { classes, onDrawerToggle } = props;
 
   const [anchorEl, setAnchorEl] = useState(null);
-  const { currentUser } = useContext(AuthContext);
+  const { currentUser, setCurrentUser } = useContext(AuthContext);
+  const history = useHistory();
+
+  const handleLogout = () => {
+    setAnchorEl(null)
+    setCurrentUser(null);
+    history.replace('/login')
+  }
 
   return (
     <>
@@ -140,7 +147,7 @@ function Header(props) {
           }}
         >
           <MenuItem onClick={() => setAnchorEl(null)}>Account</MenuItem>
-          <MenuItem onClick={() => setAnchorEl(null)}>Logout</MenuItem>
+          <MenuItem onClick={handleLogout}>Logout</MenuItem>
         </Menu>
       </Hidden>
     </>

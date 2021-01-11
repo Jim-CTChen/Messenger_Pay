@@ -28,6 +28,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import MenuItem from '@material-ui/core/MenuItem';
 
 import { AuthContext } from '../AuthContext'
+import agent from '../agent'
 
 const styles = (theme) => ({
   paper: {
@@ -38,9 +39,6 @@ const styles = (theme) => ({
     backgroundColor: '#e4e4e4',
     height: '2px'
   },
-  // list: {
-  //   margin: '5px',
-  // },
   listItem: {
     margin: '3px',
     display: 'flex'
@@ -64,7 +62,7 @@ const FILTER = [
 
 const sign = [
   { type: '欠我', value: false },
-  { type: '我欠', value: true  }
+  { type: '我欠', value: true }
 ]
 
 function Home(props) {
@@ -75,8 +73,11 @@ function Home(props) {
   const [name, setName] = useState('');
   const [amountSign, setAmountSign] = useState(false);
   const [amount, setAmount] = useState(0);
+  const [comment, setComment] = useState('')
+  const [friendList, setFriendList] = useState([]);
+  const [groupList, setGroupList] = useState([]);
   const history = useHistory();
-  const authContext = useContext(AuthContext);
+  const { currentUser } = useContext(AuthContext);
 
   const handleTabChange = (e, value) => {
     setTabValue(value)
@@ -84,47 +85,73 @@ function Home(props) {
   }
 
   const handleIsLogin = () => {
-    if (!authContext.currentUser.isLogin) {
-      history.replace('/Login');
+    if (!currentUser.isLogin) {
+      history.replace('/login');
     }
   }
 
   useEffect(() => {
     handleIsLogin();
   }, [history])
-  
-  const handleNameChange = (event) => {
-    setName(event.target.value)
-  }
-
-  const handleSignChange = (event) => {
-    setAmountSign(event.target.value)
-  }
-
-  const handleAmountChange = (event) => {
-    setAmount(event.target.value)
-  }
-
-  const handleClickOpen = () => {
-    setOpenDialog(true)
-  };
 
   const handleClose = () => {
     setOpenDialog(false)
   };
 
-  const handleSubmit = () => { 
-    const newSubmit = {
-      name: name,
-      amount: amountSign ? (-1)*amount : amount,
-      avatarSrc: null
+  const handleSubmit = async () => {
+    const payload = {
+      creditor: amountSign ? name : currentUser.username,
+      debtor: amountSign ? currentUser.username : name,
+      amount: Number(amount),
+      description: comment,
+      type: 'PERSONAL'
     }
-    db[`${filter.collection}`].push(newSubmit)
-    setName('')
-    setAmountSign(false)
-    setAmount(0)
-    setOpenDialog(false)
+    try {
+      const result = await agent.Activity.createActivity(payload);
+      if (!result.data.success) {
+        alert(result.data.error);
+      }
+      else {
+        setOpenDialog(false);
+        setName('');
+        setAmount(0);
+        setComment('');
+        getUserInfo();
+      }
+    } catch (error) {
+      setOpenDialog(false);
+      setName('');
+      setAmount(0);
+      setComment('');
+      alert(error)
+    }
   };
+
+  const getUserInfo = async () => {
+    if (!currentUser.isLogin) {
+      return
+    }
+    try {
+      const result = await agent.User.getUserInfo(currentUser.username);
+      if (!result.data.success) {
+        alert(result.data.error);
+      }
+      else {
+        setFriendList(result.data.data.friends);
+        setGroupList(result.data.data.groups);
+      }
+    } catch (error) {
+      alert(error);
+    }
+  }
+
+  const handleFriendClick = (name) => {
+    history.push(`/friend/${name}`);
+  }
+
+  useEffect(() => {
+    getUserInfo();
+  }, [])
 
   return (
     <Paper className={classes.paper} color="primary">
@@ -152,43 +179,65 @@ function Home(props) {
         <Button
           variant="contained"
           color="primary"
-          onClick={handleClickOpen}
+          onClick={() => setOpenDialog(true)}
           startIcon={<AddIcon />}
         >
           新增
         </Button>
       </Box>
-      <List className={classes.list}>
-        {
-          db[`${filter.collection}`].map(ele =>
+      <List>
+        {filter.collection === 'person' ?
+          friendList.map(friend =>
+            <ListItem
+              button
+              onClick={() => handleFriendClick(friend.name)}
+              key={friend.name}
+              className={classes.listItem}
+            >
+              <Avatar>{friend.name[0]}</Avatar>
+              &nbsp;
+              <ListItemText >{friend.name}</ListItemText>
+              <Box display="inline" mr={10}>
+                {
+                  friend.balance >= 0 ?
+                    <ListItemText className={classes.green}>
+                      {`+${friend.balance}`}
+                    </ListItemText> :
+                    <ListItemText className={classes.red}>
+                      {`${friend.balance}`}
+                    </ListItemText>
+                }
+              </Box>
+            </ListItem>
+          ) : groupList.map(group =>
             <ListItem
               button
               onClick={() => { }}
-              key={ele.name}
+              key={group.name}
               className={classes.listItem}
             >
-              {ele.avatarSrc ?
-                <Avatar alt={ele.name} src={ele.avatarSrc} /> :
-                <Avatar>{ele.name[0]}</Avatar>
-              }
+              <Avatar>{group.name[0]}</Avatar>
               &nbsp;
-              <ListItemText >{ele.name}</ListItemText>
+              <ListItemText >{group.name}</ListItemText>
               <Box display="inline" mr={10}>
                 {
-                  ele.amount >= 0 ?
+                  group.balance >= 0 ?
                     <ListItemText className={classes.green}>
-                      {`+${ele.amount}`}
+                      {`+${group.balance}`}
                     </ListItemText> :
                     <ListItemText className={classes.red}>
-                      {`${ele.amount}`}
+                      {`${group.balance}`}
                     </ListItemText>
                 }
               </Box>
             </ListItem>
           )
+
         }
+
       </List>
-      <IconButton
+
+      {/* <IconButton
         onClick={() => { }}
         style={{
           background: 'white',
@@ -199,8 +248,12 @@ function Home(props) {
         }}
       >
         <AddIcon />
-      </IconButton>
-      <Dialog open={openDialog} onClose={handleClose} aria-labelledby="form-dialog-title">
+      </IconButton> */}
+      <Dialog
+        open={openDialog}
+        onClose={handleClose}
+        maxWidth="md"
+      >
         <DialogTitle id="form-dialog-title">訂立債務契約!</DialogTitle>
         <DialogContent>
           <TextField
@@ -209,8 +262,9 @@ function Home(props) {
             margin="dense"
             id="name"
             label="對象"
-            onChange={handleNameChange}
             fullWidth
+            value={name}
+            onChange={e => setName(e.target.value)}
           />
         </DialogContent>
         <DialogContent>
@@ -220,7 +274,7 @@ function Home(props) {
             id="amountSign"
             label="類別"
             value={amountSign}
-            onChange={handleSignChange}
+            onChange={e => setAmountSign(e.target.value)}
           >
             {sign.map((option) => (
               <MenuItem key={option.value} value={option.value}>
@@ -234,7 +288,8 @@ function Home(props) {
             id="amount"
             type="number"
             label="金額"
-            onChange={handleAmountChange}
+            value={amount}
+            onChange={e => setAmount(e.target.value)}
           />
         </DialogContent>
         <DialogContent>
@@ -242,20 +297,22 @@ function Home(props) {
             margin="dense"
             id="note"
             label="備註"
+            value={comment}
             fullWidth
+            onChange={e => setComment(e.target.value)}
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose} color="primary">
             取消
           </Button>
-          <Button disabled={ name === "" | amount === 0 } onClick={handleSubmit} color="primary">
+          <Button disabled={name === "" | amount === 0} onClick={handleSubmit} color="primary">
             確認
           </Button>
         </DialogActions>
       </Dialog>
     </Paper>
-    
+
   );
 }
 

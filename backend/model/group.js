@@ -3,6 +3,10 @@ const Schema = mongoose.Schema
 
 // Creating a schema, sort of like working with an ORM
 const GroupSchema = new Schema({
+  id: {
+    type: Number,
+    required: [true, 'id field is required.']
+  },
   name: {
     type: String,
     required: [true, 'name field is required.']

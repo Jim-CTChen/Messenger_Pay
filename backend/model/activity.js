@@ -13,6 +13,11 @@ const ActivitySchema = new Schema({
     type: Number,
     default: 0
   },
+  type: {
+    type: String,
+    enum: ['PERSONAL', 'GROUP'],
+    default: 'PERSONAL'
+  },
   timestamp: {
     type: Date, default: Date.now
   },
