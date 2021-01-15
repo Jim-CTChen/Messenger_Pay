@@ -72,10 +72,10 @@ const styles = (theme) => ({
   },
 });
 
-const sign = [
-  { type: '欠我', value: false },
-  { type: '我欠', value: true }
-]
+// const sign = [
+//   { type: '欠我', value: false },
+//   { type: '我欠', value: true }
+// ]
 
 const ACTIVITY_TYPE = {
   PERSONAL: {
@@ -90,46 +90,49 @@ const ACTIVITY_TYPE = {
 
 function Friend(props) {
   const { classes } = props;
-  const [openDialog, setOpenDialog] = useState(false);
-  const [amountSign, setAmountSign] = useState(false);
-  const [amount, setAmount] = useState(0);
-  const [comment, setComment] = useState('');
+  // const [openDialog, setOpenDialog] = useState(false);
+  // const [amountSign, setAmountSign] = useState(false);
+  // const [amount, setAmount] = useState(0);
+  // const [comment, setComment] = useState('');
   const [activityList, setActivityList] = useState([])
   const [sum, setSum] = useState(0)
   const history = useHistory();
   const { currentUser } = useContext(AuthContext);
   const { friend } = useParams();
 
-  const handleClose = () => {
-    setOpenDialog(false)
-  };
+  const handleBackClick = () => {
+    history.goBack();
+  }
+  // const handleClose = () => {
+  //   setOpenDialog(false)
+  // };
 
-  const handleSubmit = async () => {
-    const payload = {
-      creditor: amountSign ? friend : currentUser.username,
-      debtor: amountSign ? currentUser.username : friend,
-      amount: Number(amount),
-      description: comment,
-      type: 'PERSONAL'
-    }
-    try {
-      const result = await agent.Activity.createActivity(payload);
-      if (!result.data.success) {
-        alert(result.data.error);
-      }
-      else {
-        setOpenDialog(false);
-        setAmount(0);
-        setComment('');
-        getFriendInfo();
-      }
-    } catch (error) {
-      setOpenDialog(false);
-      setAmount(0);
-      setComment('');
-      alert(error)
-    }
-  };
+  // const handleSubmit = async () => {
+  //   const payload = {
+  //     creditor: amountSign ? friend : currentUser.username,
+  //     debtor: amountSign ? currentUser.username : friend,
+  //     amount: Number(amount),
+  //     description: comment,
+  //     type: 'PERSONAL'
+  //   }
+  //   try {
+  //     const result = await agent.Activity.createActivity(payload);
+  //     if (!result.data.success) {
+  //       alert(result.data.error);
+  //     }
+  //     else {
+  //       setOpenDialog(false);
+  //       setAmount(0);
+  //       setComment('');
+  //       getFriendInfo();
+  //     }
+  //   } catch (error) {
+  //     setOpenDialog(false);
+  //     setAmount(0);
+  //     setComment('');
+  //     alert(error)
+  //   }
+  // };
 
   const getFriendInfo = async () => {
     if (!currentUser.username) return
@@ -175,10 +178,9 @@ function Friend(props) {
           <Button
             variant="contained"
             color="primary"
-            onClick={() => setOpenDialog(true)}
-            startIcon={<AddIcon />}
+            onClick={handleBackClick}
           >
-            新增
+            上一頁
           </Button>
         </Box>
 
@@ -230,7 +232,7 @@ function Friend(props) {
         >
           <AddIcon />
         </IconButton> */}
-        <Dialog
+        {/* <Dialog
           open={openDialog}
           onClose={handleClose}
           maxWidth="md"
@@ -284,7 +286,7 @@ function Friend(props) {
               確認
             </Button>
           </DialogActions>
-        </Dialog>
+        </Dialog> */}
       </Paper>
     </>
   );

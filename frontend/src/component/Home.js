@@ -27,6 +27,14 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import MenuItem from '@material-ui/core/MenuItem';
 
+import Chip from '@material-ui/core/Chip'
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableContainer from '@material-ui/core/TableContainer';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
+
 import { AuthContext } from '../AuthContext'
 import agent from '../agent'
 
@@ -34,6 +42,15 @@ const styles = (theme) => ({
   paper: {
     maxWidth: 936,
     margin: 'auto',
+  },
+  typography: {
+    width: '33.3%',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: 'rgba(0, 0, 0, 0.54)',
+    marginTop: theme.spacing(1),
+    marginBottom: theme.spacing(1)
   },
   divider: {
     backgroundColor: '#e4e4e4',
@@ -154,165 +171,182 @@ function Home(props) {
   }, [])
 
   return (
-    <Paper className={classes.paper} color="primary">
-      <Tabs
-        className={classes.tabs}
-        value={tabValue}
-        indicatorColor="primary"
-        textColor="primary"
-        onChange={handleTabChange}
-        aria-label="disabled tabs example"
-      >
-        {
-          FILTER.map(item =>
-            <Tab
-              className={classes.tabs}
-              value={item.key}
-              key={item.key}
-              label={item.label}
-            />
-          )
-        }
-      </Tabs>
-      <Divider className={classes.divider} />
-      <Box mx={2} mt={1} style={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => setOpenDialog(true)}
-          startIcon={<AddIcon />}
+    <>
+      <Paper className={classes.paper} color="primary">
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell align="center">待收</TableCell>
+              <TableCell align="center">待付</TableCell>
+              <TableCell align="center">總結</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            <TableRow>
+              <TableCell align="center">1000</TableCell>
+              <TableCell align="center">700</TableCell>
+              <TableCell align="center">300</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+        <Tabs
+          className={classes.tabs}
+          value={tabValue}
+          indicatorColor="primary"
+          textColor="primary"
+          onChange={handleTabChange}
+          aria-label="disabled tabs example"
         >
-          新增
-        </Button>
-      </Box>
-      <List>
-        {filter.collection === 'person' ?
-          friendList.map(friend =>
-            <ListItem
-              button
-              onClick={() => handleFriendClick(friend.name)}
-              key={friend.name}
-              className={classes.listItem}
-            >
-              <Avatar>{friend.name[0]}</Avatar>
-              &nbsp;
-              <ListItemText >{friend.name}</ListItemText>
-              <Box display="inline" mr={10}>
-                {
-                  friend.balance >= 0 ?
-                    <ListItemText className={classes.green}>
-                      {`+${friend.balance}`}
-                    </ListItemText> :
-                    <ListItemText className={classes.red}>
-                      {`${friend.balance}`}
-                    </ListItemText>
-                }
-              </Box>
-            </ListItem>
-          ) : groupList.map(group =>
-            <ListItem
-              button
-              onClick={() => { }}
-              key={group.name}
-              className={classes.listItem}
-            >
-              <Avatar>{group.name[0]}</Avatar>
-              &nbsp;
-              <ListItemText >{group.name}</ListItemText>
-              <Box display="inline" mr={10}>
-                {
-                  group.balance >= 0 ?
-                    <ListItemText className={classes.green}>
-                      {`+${group.balance}`}
-                    </ListItemText> :
-                    <ListItemText className={classes.red}>
-                      {`${group.balance}`}
-                    </ListItemText>
-                }
-              </Box>
-            </ListItem>
-          )
-
-        }
-
-      </List>
-
-      {/* <IconButton
-        onClick={() => { }}
-        style={{
-          background: 'white',
-          position: 'fixed',
-          right: '45px',
-          bottom: '45px',
-          boxShadow: '1px 1px 1px rgba(0, 0, 0, 0.7)'
-        }}
-      >
-        <AddIcon />
-      </IconButton> */}
-      <Dialog
-        open={openDialog}
-        onClose={handleClose}
-        maxWidth="md"
-      >
-        <DialogTitle id="form-dialog-title">訂立債務契約!</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            required
-            margin="dense"
-            id="name"
-            label="對象"
-            fullWidth
-            value={name}
-            onChange={e => setName(e.target.value)}
-          />
-        </DialogContent>
-        <DialogContent>
-          <TextField
-            select
-            margin="dense"
-            id="amountSign"
-            label="類別"
-            value={amountSign}
-            onChange={e => setAmountSign(e.target.value)}
+          {
+            FILTER.map(item =>
+              <Tab
+                className={classes.tabs}
+                value={item.key}
+                key={item.key}
+                label={item.label}
+              />
+            )
+          }
+        </Tabs>
+        <Divider className={classes.divider} />
+        <Box mx={2} mt={1} style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => setOpenDialog(true)}
+            startIcon={<AddIcon />}
           >
-            {sign.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                {option.type}
-              </MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            required
-            margin="dense"
-            id="amount"
-            type="number"
-            label="金額"
-            value={amount}
-            onChange={e => setAmount(e.target.value)}
-          />
-        </DialogContent>
-        <DialogContent>
-          <TextField
-            margin="dense"
-            id="note"
-            label="備註"
-            value={comment}
-            fullWidth
-            onChange={e => setComment(e.target.value)}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose} color="primary">
-            取消
+            新增
           </Button>
-          <Button disabled={name === "" | amount === 0} onClick={handleSubmit} color="primary">
-            確認
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Paper>
+        </Box>
+        <List>
+          {filter.collection === 'person' ?
+            friendList.map(friend =>
+              <ListItem
+                button
+                onClick={() => handleFriendClick(friend.name)}
+                key={friend.name}
+                className={classes.listItem}
+              >
+                <Avatar>{friend.name[0]}</Avatar>
+                &nbsp;
+                <ListItemText >{friend.name}</ListItemText>
+                <Box display="inline" mr={10}>
+                  {
+                    friend.balance >= 0 ?
+                      <ListItemText className={classes.green}>
+                        {`+${friend.balance}`}
+                      </ListItemText> :
+                      <ListItemText className={classes.red}>
+                        {`${friend.balance}`}
+                      </ListItemText>
+                  }
+                </Box>
+              </ListItem>
+            ) : groupList.map(group =>
+              <ListItem
+                button
+                onClick={() => { }}
+                key={group.name}
+                className={classes.listItem}
+              >
+                <Avatar>{group.name[0]}</Avatar>
+                &nbsp;
+                <ListItemText >{group.name}</ListItemText>
+                <Box display="inline" mr={10}>
+                  {
+                    group.balance >= 0 ?
+                      <ListItemText className={classes.green}>
+                        {`+${group.balance}`}
+                      </ListItemText> :
+                      <ListItemText className={classes.red}>
+                        {`${group.balance}`}
+                      </ListItemText>
+                  }
+                </Box>
+              </ListItem>
+            )
 
+          }
+
+        </List>
+
+        {/* <IconButton
+          onClick={() => { }}
+          style={{
+            background: 'white',
+            position: 'fixed',
+            right: '45px',
+            bottom: '45px',
+            boxShadow: '1px 1px 1px rgba(0, 0, 0, 0.7)'
+          }}
+        >
+          <AddIcon />
+        </IconButton> */}
+        <Dialog
+          open={openDialog}
+          onClose={handleClose}
+          maxWidth="md"
+        >
+          <DialogTitle id="form-dialog-title">訂立債務契約!</DialogTitle>
+          <DialogContent>
+            <TextField
+              autoFocus
+              required
+              margin="dense"
+              id="name"
+              label="對象"
+              fullWidth
+              value={name}
+              onChange={e => setName(e.target.value)}
+            />
+          </DialogContent>
+          <DialogContent>
+            <TextField
+              select
+              margin="dense"
+              id="amountSign"
+              label="類別"
+              value={amountSign}
+              onChange={e => setAmountSign(e.target.value)}
+            >
+              {sign.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.type}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              required
+              margin="dense"
+              id="amount"
+              type="number"
+              label="金額"
+              value={amount}
+              onChange={e => setAmount(e.target.value)}
+            />
+          </DialogContent>
+          <DialogContent>
+            <TextField
+              margin="dense"
+              id="note"
+              label="備註"
+              value={comment}
+              fullWidth
+              onChange={e => setComment(e.target.value)}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleClose} color="primary">
+              取消
+            </Button>
+            <Button disabled={name === "" | amount === 0} onClick={handleSubmit} color="primary">
+              確認
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Paper>
+    </>
   );
 }
 
