@@ -19,8 +19,11 @@ const Event = {
 }
 
 const Group = {
+  createGroup: async (body) => await axios.post('/group', body),
   getGroupEvent: async (user, id) =>
     await axios.get(`/group?username=${user}&groupId=${id}`),
+  addUser: async (body) => await axios.post('/group/addUser', body),
+  removeUser: async (body) => await axios.post('/group/removeUser', body)
 }
 
 export default {

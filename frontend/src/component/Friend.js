@@ -3,18 +3,13 @@ import { useHistory, useParams } from 'react-router-dom'
 import dayjs from 'dayjs'
 import PropTypes from 'prop-types';
 import Paper from '@material-ui/core/Paper';
-import Tabs from '@material-ui/core/Tabs';
-import Tab from '@material-ui/core/Tab';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
 import { withStyles } from '@material-ui/core/styles';
 import Divider from '@material-ui/core/Divider'
 import Avatar from '@material-ui/core/Avatar';
 import Box from '@material-ui/core/Box'
 import IconButton from '@material-ui/core/IconButton';
 import AddIcon from '@material-ui/icons/Add';
+import HomeIcon from '@material-ui/icons/Home';
 import Button from '@material-ui/core/Button'
 import Typography from '@material-ui/core/Typography'
 import db from '../constants/db'
@@ -36,6 +31,8 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 
+import Grid from '@material-ui/core/Grid';
+
 import { AuthContext } from '../AuthContext'
 import agent from '../agent'
 
@@ -43,6 +40,10 @@ const styles = (theme) => ({
   paper: {
     maxWidth: 936,
     margin: 'auto',
+  },
+  blockPaper: {
+    padding: theme.spacing(2),
+    textAlign: 'center',
   },
   typography: {
     width: '100%',
@@ -72,10 +73,10 @@ const styles = (theme) => ({
   },
 });
 
-// const sign = [
-//   { type: '欠我', value: false },
-//   { type: '我欠', value: true }
-// ]
+const sign = [
+  { type: '欠我', value: false },
+  { type: '我欠', value: true }
+]
 
 const EVENT_TYPE = {
   PERSONAL: {
@@ -92,9 +93,44 @@ function Friend(props) {
   const { classes } = props;
   const [eventList, setEventList] = useState([])
   const [sum, setSum] = useState(0)
+  const [openFriendDialog, setOpenFriendDialog] = useState(false);
+  const [amountSign, setAmountSign] = useState(false);
+  const [amount, setAmount] = useState('');
+  const [comment, setComment] = useState('');
   const history = useHistory();
   const { currentUser } = useContext(AuthContext);
   const { friend } = useParams();
+
+  const handleFriendClose = () => {
+    setOpenFriendDialog(false)
+  };
+
+  const handleFriendSubmit = async () => {
+    const payload = {
+      creditor: amountSign ? friend : currentUser.username,
+      debtor: amountSign ? currentUser.username : friend,
+      amount: Number(amount),
+      description: comment,
+      type: 'PERSONAL'
+    }
+    try {
+      const result = await agent.Event.createEvent(payload);
+      if (!result.data.success) {
+        alert(result.data.error);
+      }
+      else {
+        setOpenFriendDialog(false);
+        setAmount('');
+        setComment('');
+        getEventInfo();
+      }
+    } catch (error) {
+      setOpenFriendDialog(false);
+      setAmount('');
+      setComment('');
+      alert(error)
+    }
+  };
 
   const handleBackClick = () => {
     history.goBack();
@@ -117,7 +153,6 @@ function Friend(props) {
   }
 
   useEffect(() => {
-    console.log('friend')
     getEventInfo();
   }, [])
 
@@ -133,60 +168,134 @@ function Friend(props) {
 
   return (
     <>
-      <Paper className={classes.paper} color="primary">
-        <Typography className={classes.typography}>
-          歷史紀錄
-        </Typography>
-        <Divider className={classes.divider} />
-        <Box mx={2} mt={1} style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Typography >
-            {`合計：${(sum < 0) ? '' : '+'}${sum}`}
+      <Grid container spacing={3} className={classes.paper}>
+        <Grid item xs>
+          <Paper className={classes.blockPaper} color="primary">
+            <Box mx={2} style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Box style={{ display: 'flex' }}>
+                <Avatar>{friend[0]}</Avatar> &nbsp;
+                <Typography>{friend}</Typography>
+              </Box>
+              <Typography >
+                {`合計：${(sum < 0) ? '' : '+'}${sum}`}
+              </Typography>
+            </Box>
+          </Paper>
+        </Grid>
+      </Grid>
+    
+    <Grid container spacing={3} className={classes.paper}>
+      <Grid item xs>
+        <Paper className={classes.paper} color="primary">
+          <Typography className={classes.typography}>
+            歷史紀錄
           </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleBackClick}
-          >
-            上一頁
-          </Button>
-        </Box>
 
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell></TableCell>
-              <TableCell align="right">類型</TableCell>
-              <TableCell align="right">敘述</TableCell>
-              <TableCell align="right">金額</TableCell>
-              <TableCell align="right">時間</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {eventList.map((event, id) => (
-              <TableRow key={id}>
-                <TableCell>
-                  <Box style={{ display: 'flex' }}>
-                    <Avatar>{friend[0]}</Avatar> &nbsp;
-                    <Typography>{friend}</Typography>
-                  </Box>
-                </TableCell>
-                <TableCell align="right">
-                  <Chip
-                    color={EVENT_TYPE[event.type].color}
-                    label={EVENT_TYPE[event.type].label}
-                    variant="outlined"
-                  />
-                </TableCell>
-                <TableCell align="right">{event.description}</TableCell>
-                <TableCell align="right" className={(event.amount < 0) ? classes.red : classes.green}>
-                  {(event.amount < 0) ? event.amount : `+${event.amount}`}
-                </TableCell>
-                <TableCell align="right">{dayjs(event.time).format('YYYY/MM/DD HH:mm')}</TableCell>
+          <Divider className={classes.divider} />
+
+          <Box mx={2} mt={1} align='right'>
+            <IconButton onClick={() => setOpenFriendDialog(true)}>
+              <AddIcon />
+            </IconButton>
+            <IconButton onClick={handleBackClick}>
+              <HomeIcon />
+            </IconButton>
+          </Box>
+          
+          <Table>
+            <TableHead>
+              <TableRow>
+                {/* <TableCell></TableCell> */}
+                <TableCell align="center">類型</TableCell>
+                <TableCell align="center">敘述</TableCell>
+                <TableCell align="center">金額</TableCell>
+                <TableCell align="center">時間</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Paper>
+            </TableHead>
+            <TableBody>
+              {eventList.map((event, id) => (
+                <TableRow key={id}>
+                  <TableCell align="center">
+                    <Chip
+                      color={EVENT_TYPE[event.type].color}
+                      label={EVENT_TYPE[event.type].label}
+                      variant="outlined"
+                    />
+                  </TableCell>
+                  <TableCell align="center">{event.description}</TableCell>
+                  <TableCell align="center" className={(event.amount < 0) ? classes.red : classes.green}>
+                    {(event.amount < 0) ? event.amount : `+${event.amount}`}
+                  </TableCell>
+                  <TableCell align="center">{dayjs(event.time).format('YYYY/MM/DD HH:mm')}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Paper>
+      </Grid>
+    </Grid>
+
+    <Dialog
+      open={openFriendDialog}
+      onClose={handleFriendClose}
+      maxWidth="md"
+    >
+      <DialogTitle>新增交易</DialogTitle>
+      <DialogContent>
+        <TextField
+          required
+          disabled
+          margin="dense"
+          label="對象"
+          fullWidth
+          value={friend}
+        />
+      </DialogContent>
+      <DialogContent>
+        <TextField
+          select
+          margin="dense"
+          label="類別"
+          value={amountSign}
+          onChange={e => setAmountSign(e.target.value)}
+        >
+          {sign.map((option) => (
+            <MenuItem key={option.value} value={option.value}>
+              {option.type}
+            </MenuItem>
+          ))}
+        </TextField>
+        <TextField
+          required
+          margin="dense"
+          label="金額"
+          placeholder="請填入數字"
+          value={amount}
+          error={isNaN(amount)}
+          onChange={e => setAmount(e.target.value)}
+        />
+      </DialogContent>
+      <DialogContent>
+        <TextField
+          margin="dense"
+          label="備註"
+          value={comment}
+          fullWidth
+          onChange={e => setComment(e.target.value)}
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleFriendClose} color="primary">
+          取消
+        </Button>
+        <Button
+          disabled={isNaN(amount) | amount === ''}
+          onClick={handleFriendSubmit} color="primary"
+        >
+          確認
+        </Button>
+      </DialogActions>
+    </Dialog>
     </>
   );
 }

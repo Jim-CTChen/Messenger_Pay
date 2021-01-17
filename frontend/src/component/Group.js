@@ -3,18 +3,16 @@ import { useHistory, useParams, useLocation } from 'react-router-dom'
 import dayjs from 'dayjs'
 import PropTypes from 'prop-types';
 import Paper from '@material-ui/core/Paper';
-import Tabs from '@material-ui/core/Tabs';
-import Tab from '@material-ui/core/Tab';
+import { withStyles } from '@material-ui/core/styles';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
-import { withStyles } from '@material-ui/core/styles';
 import Divider from '@material-ui/core/Divider'
 import Avatar from '@material-ui/core/Avatar';
 import Box from '@material-ui/core/Box'
 import IconButton from '@material-ui/core/IconButton';
 import AddIcon from '@material-ui/icons/Add';
+import HomeIcon from '@material-ui/icons/Home';
+import DeleteIcon from '@material-ui/icons/Delete';
 import Button from '@material-ui/core/Button'
 import Typography from '@material-ui/core/Typography'
 import db from '../constants/db'
@@ -36,6 +34,8 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 
+import Grid from '@material-ui/core/Grid';
+
 import { AuthContext } from '../AuthContext'
 import agent from '../agent'
 
@@ -43,6 +43,10 @@ const styles = (theme) => ({
   paper: {
     maxWidth: 936,
     margin: 'auto',
+  },
+  blockPaper: {
+    padding: theme.spacing(2),
+    textAlign: 'center',
   },
   typography: {
     width: '100%',
@@ -72,10 +76,10 @@ const styles = (theme) => ({
   },
 });
 
-// const sign = [
-//   { type: '欠我', value: false },
-//   { type: '我欠', value: true }
-// ]
+const sign = [
+  { type: '下欠上', value: false },
+  { type: '上欠下', value: true }
+]
 
 const EVENT_TYPE = {
   PERSONAL: {
@@ -93,17 +97,106 @@ function Group(props) {
   const [memberList, setMemberList] = useState([])
   const [eventList, setEventList] = useState([])
   const [sum, setSum] = useState(0)
+  const [openDialog, setOpenDialog] = useState(false);
+  const [creditor, setCreditor] = useState('');
+  const [debtor, setDebtor] = useState('');
+  const [amountSign, setAmountSign] = useState(false);
+  const [amount, setAmount] = useState('');
+  const [comment, setComment] = useState('');
+  const [openAddUserDialog, setOpenAddUserDialog] = useState(false);
+  const [addUser, setAddUser] = useState('');
   const history = useHistory();
-  const location = useLocation();
   const { currentUser } = useContext(AuthContext);
   const { id } = useParams();
+
+  const handleClose = () => {
+    setOpenDialog(false)
+  };
+
+  const handleGroupSubmit = async () => {
+    const payload = {
+      creditor: amountSign ? debtor : creditor,
+      debtor: amountSign ? creditor : debtor,
+      amount: Number(amount),
+      description: comment,
+      type: 'GROUP',
+      groupId: id
+    }
+    try {
+      const result = await agent.Event.createEvent(payload);
+      if (!result.data.success) {
+        alert(result.data.error);
+      }
+      else {
+        setOpenDialog(false);
+        setCreditor('');
+        setDebtor('');
+        setAmountSign(false);
+        setAmount('');
+        setComment('');
+        getGroupInfo();
+      }
+    } catch (error) {
+      setOpenDialog(false);
+      setCreditor('');
+      setDebtor('');
+      setAmountSign(false);
+      setAmount('');
+      setComment('');
+      alert(error)
+    }
+  };
 
   const handleBackClick = () => {
     history.goBack();
   }
 
+  const handleAddUserClose = () => {
+    setOpenAddUserDialog(false)
+  };
+
+  const handleAddUser = async () => {
+    const users = addUser.split(' ')
+    const payload = {
+      groupId: id,
+      usernames: users
+    }
+    try {
+      const result = await agent.Group.addUser(payload);
+      if (!result.data.success) {
+        alert(result.data.error);
+      }
+      else {
+        setOpenAddUserDialog(false);
+        setAddUser('')
+        getGroupInfo();
+      }
+    } catch (error) {
+      setOpenAddUserDialog(false);
+      setAddUser('')
+      alert(error)
+    }
+  }
+
+  const handleRemoveUser = async (user) => {
+    const payload = {
+      groupId: id,
+      usernames: user
+    }
+    try {
+      const result = await agent.Group.removeUser(payload);
+      if (!result.data.success) {
+        alert(result.data.error);
+      }
+      else {
+        getGroupInfo();
+      }
+    } catch (error) {
+      alert(error)
+    }
+  }
+
   const getGroupInfo = async () => {
-    console.log('click')
     if (!currentUser.username) return
     try {
       const result = await agent.Group.getGroupEvent(currentUser.username, id);
@@ -136,66 +229,197 @@ function Group(props) {
 
   return (
     <>
-      <Paper className={classes.paper} color="primary">
-        <Typography className={classes.typography}>
-          歷史紀錄
-        </Typography>
-        <Divider className={classes.divider} />
-        <Box mx={2} mt={1} style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Typography >
-            {`合計：${(sum < 0) ? '' : '+'}${sum}`}
-          </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleBackClick}
-          >
-            上一頁
-          </Button>
-        </Box>
+      <Grid container spacing={3} className={classes.paper}>
+        <Grid item xs>
+          <Paper className={classes.blockPaper} color="primary">
+            <Typography className={classes.typography}>
+              群組成員
+            </Typography>
 
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell></TableCell>
-              <TableCell align="right">類型</TableCell>
-              <TableCell align="right">敘述</TableCell>
-              <TableCell align="right">金額</TableCell>
-              <TableCell align="right">時間</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {eventList.map((event, id) => (
-              <TableRow key={id}>
-                <TableCell>
-                  <Box style={{ display: 'flex' }}>
-                    <Avatar>{event.creditor[0]}</Avatar> &nbsp;
-                    <Typography>{event.creditor}</Typography>
-                  </Box>
-                </TableCell>
-                <TableCell>
-                  <Box style={{ display: 'flex' }}>
-                    <Avatar>{event.debtor[0]}</Avatar> &nbsp;
-                    <Typography>{event.debtor}</Typography>
-                  </Box>
-                </TableCell>
-                {/* <TableCell align="right">
-                  <Chip
-                    color={EVENT_TYPE[event.type].color}
-                    label={EVENT_TYPE[event.type].label}
-                    variant="outlined"
-                  />
-                </TableCell> */}
-                <TableCell align="right">{event.description}</TableCell>
-                <TableCell align="right" className={(event.amount < 0) ? classes.red : classes.green}>
-                  {(event.amount < 0) ? event.amount : `+${event.amount}`}
-                </TableCell>
-                <TableCell align="right">{dayjs(event.time).format('YYYY/MM/DD HH:mm')}</TableCell>
-              </TableRow>
+            <Divider className={classes.divider} />
+
+            <Box mx={2} mt={1} align='right'>
+              <IconButton onClick={() => setOpenAddUserDialog(true)}>
+                <AddIcon />
+              </IconButton>
+            </Box>
+
+            <List>
+              {memberList.map((user, id) => (
+                <ListItem className={classes.listItem}>
+                  <IconButton onClick={() => handleRemoveUser(user)}>
+                    <DeleteIcon />
+                  </IconButton> &nbsp;
+                  <Avatar>{user[0]}</Avatar> &nbsp;
+                  <Typography>{user}</Typography>
+                </ListItem>
+              ))}
+              {/* <Typography >
+                {`合計：${(sum < 0) ? '' : '+'}${sum}`}
+              </Typography> */}
+            </List>
+          </Paper>
+        </Grid>
+      </Grid>
+
+      <Grid container spacing={3} className={classes.paper}>
+        <Grid item xs>
+          <Paper className={classes.paper} color="primary">
+            <Typography className={classes.typography}>
+              歷史紀錄
+            </Typography>
+
+            <Divider className={classes.divider} />
+
+            <Box mx={2} mt={1} align='right'>
+              <IconButton onClick={() => setOpenDialog(true)}>
+                <AddIcon />
+              </IconButton>
+              <IconButton onClick={handleBackClick}>
+                <HomeIcon />
+              </IconButton>
+            </Box>
+
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell align="center">債權人</TableCell>
+                  <TableCell align="center">債務人</TableCell>
+                  <TableCell align="center">敘述</TableCell>
+                  <TableCell align="center">金額</TableCell>
+                  <TableCell align="center">時間</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {eventList.map((event, id) => (
+                  <TableRow key={id}>
+                    <TableCell align="center">
+                      <Box style={{ display: 'flex' }}>
+                        <Avatar>{event.creditor[0]}</Avatar> &nbsp;
+                        <Typography>{event.creditor}</Typography>
+                      </Box>
+                    </TableCell>
+                    <TableCell align="center">
+                      <Box style={{ display: 'flex' }}>
+                        <Avatar>{event.debtor[0]}</Avatar> &nbsp;
+                        <Typography>{event.debtor}</Typography>
+                      </Box>
+                    </TableCell>
+                    <TableCell align="center">{event.description}</TableCell>
+                    <TableCell align="center" className={(event.amount < 0) ? classes.red : classes.green}>
+                      {(event.amount < 0) ? event.amount : `+${event.amount}`}
+                    </TableCell>
+                    <TableCell align="center">{dayjs(event.time).format('YYYY/MM/DD HH:mm')}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Paper>
+        </Grid>
+      </Grid>
+      
+      <Dialog
+        open={openDialog}
+        onClose={handleClose}
+        maxWidth="md"
+      >
+        <DialogTitle>新增交易</DialogTitle>
+        <DialogContent>
+          <TextField
+            required
+            margin="dense"
+            label="債權人"
+            fullWidth
+            value={creditor}
+            onChange={e => setCreditor(e.target.value)}
+          />
+        </DialogContent>
+        <DialogContent>
+          <TextField
+            required
+            margin="dense"
+            label="債務人"
+            fullWidth
+            value={debtor}
+            onChange={e => setDebtor(e.target.value)}
+          />
+        </DialogContent>
+        <DialogContent>
+          <TextField
+            select
+            margin="dense"
+            label="類別"
+            value={amountSign}
+            onChange={e => setAmountSign(e.target.value)}
+          >
+            {sign.map((option) => (
+              <MenuItem key={option.value} value={option.value}>
+                {option.type}
+              </MenuItem>
             ))}
-          </TableBody>
-        </Table>
-      </Paper>
+          </TextField>
+          <TextField
+            required
+            margin="dense"
+            label="金額"
+            placeholder="請填入數字"
+            value={amount}
+            error={isNaN(amount)}
+            onChange={e => setAmount(e.target.value)}
+          />
+        </DialogContent>
+        <DialogContent>
+          <TextField
+            margin="dense"
+            label="備註"
+            value={comment}
+            fullWidth
+            onChange={e => setComment(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose} color="primary">
+            取消
+          </Button>
+          <Button
+            disabled={creditor === '' | debtor === '' | isNaN(amount) | amount === ''}
+            onClick={handleGroupSubmit} color="primary"
+          >
+            確認
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openAddUserDialog}
+        onClose={handleAddUserClose}
+        maxWidth="md"
+      >
+        <DialogTitle>新增成員</DialogTitle>
+        <DialogContent>
+          <TextField
+            required
+            label="新增成員"
+            fullWidth
+            placeholder="請以空白區隔"
+            value={addUser}
+            onChange={e => setAddUser(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleAddUserClose} color="primary">
+            取消
+          </Button>
+          <Button
+            disabled={addUser === ""}
+            onClick={handleAddUser}
+            color="primary"
+          >
+            確認
+          </Button>
+        </DialogActions>
+      </Dialog>
+
     </>
   );
 }

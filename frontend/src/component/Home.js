@@ -90,11 +90,14 @@ function Home(props) {
   const { classes } = props;
   const [tabValue, setTabValue] = useState(0)
   const [filter, setFilter] = useState(FILTER[0])
-  const [openDialog, setOpenDialog] = useState(false);
+  const [openFriendDialog, setOpenFriendDialog] = useState(false);
   const [name, setName] = useState('');
   const [amountSign, setAmountSign] = useState(false);
-  const [amount, setAmount] = useState(0);
-  const [comment, setComment] = useState('')
+  const [amount, setAmount] = useState('');
+  const [comment, setComment] = useState('');
+  const [openGroupDialog, setOpenGroupDialog] = useState(false);
+  const [groupName, setGroupName] = useState('');
+  const [groupUsers, setGroupUsers] = useState('');
   const [friendList, setFriendList] = useState([]);
   const [groupList, setGroupList] = useState([]);
   const history = useHistory();
@@ -115,11 +118,11 @@ function Home(props) {
     handleIsLogin();
   }, [history])
 
-  const handleClose = () => {
-    setOpenDialog(false)
+  const handleFriendClose = () => {
+    setOpenFriendDialog(false)
   };
 
-  const handleSubmit = async () => {
+  const handleFriendSubmit = async () => {
     const payload = {
       creditor: amountSign ? name : currentUser.username,
       debtor: amountSign ? currentUser.username : name,
@@ -133,17 +136,46 @@ function Home(props) {
         alert(result.data.error);
       }
       else {
-        setOpenDialog(false);
+        setOpenFriendDialog(false);
         setName('');
-        setAmount(0);
+        setAmount('');
         setComment('');
         getUserInfo();
       }
     } catch (error) {
-      setOpenDialog(false);
+      setOpenFriendDialog(false);
       setName('');
-      setAmount(0);
+      setAmount('');
       setComment('');
+      alert(error)
+    }
+  };
+
+  const handleGroupClose = () => {
+    setOpenGroupDialog(false)
+  };
+
+  const handleGroupSubmit = async () => {
+    const users = groupUsers.split(' ')
+    const payload = {
+      groupName: groupName,
+      usernames: users
+    }
+    try {
+      const result = await agent.Group.createGroup(payload);
+      if (!result.data.success) {
+        alert(result.data.error);
+      }
+      else {
+        setOpenGroupDialog(false);
+        setGroupName('');
+        setGroupUsers('');
+        getUserInfo();
+      }
+    } catch (error) {
+      setOpenGroupDialog(false);
+      setGroupName('');
+      setGroupUsers('');
       alert(error)
     }
   };
@@ -171,7 +203,6 @@ function Home(props) {
   }
 
   const handleGroupClick = (id) => {
-    console.log('click group')
     history.push(`/group/${id}`);
     // history.push({ pathname: `/group/${name}`, data: { id: id } });
   }
@@ -253,16 +284,17 @@ function Home(props) {
               }
             </Tabs>
             <Divider className={classes.divider} />
-            <Box mx={2} mt={1} style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => setOpenDialog(true)}
-                startIcon={<AddIcon />}
-              >
-                新增
-              </Button>
+            <Box mx={2} mt={1} align='right'>
+              {filter.collection === 'person' ?
+                <IconButton onClick={() => setOpenFriendDialog(true)}>
+                  <AddIcon />
+                </IconButton> :
+                <IconButton onClick={() => setOpenGroupDialog(true)}>
+                  <AddIcon />
+                </IconButton>
+              }
             </Box>
+
             <List>
               {filter.collection === 'person' ?
                 friendList.map(friend =>
@@ -310,11 +342,8 @@ function Home(props) {
                     </Box>
                   </ListItem>
                 )
-
               }
-
             </List>
-
             {/* <IconButton
               onClick={() => { }}
               style={{
@@ -327,71 +356,112 @@ function Home(props) {
             >
               <AddIcon />
             </IconButton> */}
-            <Dialog
-              open={openDialog}
-              onClose={handleClose}
-              maxWidth="md"
-            >
-              <DialogTitle id="form-dialog-title">訂立債務契約!</DialogTitle>
-              <DialogContent>
-                <TextField
-                  autoFocus
-                  required
-                  margin="dense"
-                  id="name"
-                  label="對象"
-                  fullWidth
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                />
-              </DialogContent>
-              <DialogContent>
-                <TextField
-                  select
-                  margin="dense"
-                  id="amountSign"
-                  label="類別"
-                  value={amountSign}
-                  onChange={e => setAmountSign(e.target.value)}
-                >
-                  {sign.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.type}
-                    </MenuItem>
-                  ))}
-                </TextField>
-                <TextField
-                  required
-                  margin="dense"
-                  id="amount"
-                  type="number"
-                  label="金額"
-                  value={amount}
-                  onChange={e => setAmount(e.target.value)}
-                />
-              </DialogContent>
-              <DialogContent>
-                <TextField
-                  margin="dense"
-                  id="note"
-                  label="備註"
-                  value={comment}
-                  fullWidth
-                  onChange={e => setComment(e.target.value)}
-                />
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={handleClose} color="primary">
-                  取消
-                </Button>
-                <Button disabled={name === "" | amount === 0} onClick={handleSubmit} color="primary">
-                  確認
-                </Button>
-              </DialogActions>
-            </Dialog>
           </Paper>
         </Grid>
       </Grid>
+
+      <Dialog
+        open={openFriendDialog}
+        onClose={handleFriendClose}
+        maxWidth="md"
+      >
+        <DialogTitle>新增交易</DialogTitle>
+        <DialogContent>
+          <TextField
+            required
+            margin="dense"
+            label="對象"
+            fullWidth
+            value={name}
+            onChange={e => setName(e.target.value)}
+          />
+        </DialogContent>
+        <DialogContent>
+          <TextField
+            select
+            margin="dense"
+            label="類別"
+            value={amountSign}
+            onChange={e => setAmountSign(e.target.value)}
+          >
+            {sign.map((option) => (
+              <MenuItem key={option.value} value={option.value}>
+                {option.type}
+              </MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            required
+            margin="dense"
+            label="金額"
+            placeholder="請填入數字"
+            value={amount}
+            error={isNaN(amount)}
+            onChange={e => setAmount(e.target.value)}
+          />
+        </DialogContent>
+        <DialogContent>
+          <TextField
+            margin="dense"
+            label="備註"
+            value={comment}
+            fullWidth
+            onChange={e => setComment(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleFriendClose} color="primary">
+            取消
+          </Button>
+          <Button
+            disabled={name === '' | amount === '' | isNaN(amount)}
+            onClick={handleFriendSubmit} color="primary"
+          >
+            確認
+          </Button>
+        </DialogActions>
+      </Dialog>
+    
+      <Dialog
+        open={openGroupDialog}
+        onClose={handleGroupClose}
+        maxWidth="md"
+      >
+        <DialogTitle>新增群組</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            required
+            // margin="dense"
+            label="群組名稱"
+            fullWidth
+            value={groupName}
+            onChange={e => setGroupName(e.target.value)}
+          />
+        </DialogContent>
+        <DialogContent>
+          <TextField
+            required
+            label="群組成員"
+            fullWidth
+            placeholder="請以空白區隔"
+            value={groupUsers}
+            onChange={e => setGroupUsers(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleGroupClose} color="primary">
+            取消
+          </Button>
+          <Button
+            disabled={groupName === "" | groupUsers === ""}
+            onClick={handleGroupSubmit}
+            color="primary"
+          >
+            確認
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }
