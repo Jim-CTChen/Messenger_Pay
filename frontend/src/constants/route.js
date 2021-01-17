@@ -2,6 +2,7 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import PeopleIcon from '@material-ui/icons/People';
 import Home from '../component/Home'
 import Friend from '../component/Friend'
+import Group from '../component/Group'
 import Setting from '../component/Setting'
 import About from '../component/About'
 import Template from '../component/template'
@@ -12,8 +13,8 @@ export default {
     { path: '/home', name: 'home', component: Home },
 
     // 群組
-    { path: '/groups', name: 'myGroups', component: Home },
-    { path: '/groups/new', name: 'newGroups', component: Home },
+    // { path: '/groups', name: 'myGroups', component: Group },
+    { path: '/group/:id', name: 'group', component: Group },
 
     // 朋友
     { path: '/friend/:friend', name: 'friend', component: Friend },

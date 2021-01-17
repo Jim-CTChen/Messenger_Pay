@@ -79,7 +79,6 @@ const styles = (theme) => ({
 const FILTER = [
   { key: 0, label: '好友', collection: 'person' },
   { key: 1, label: '群組', collection: 'group' },
-  // { key: 2, label: '活動', collection: 'activity' }
 ]
 
 const sign = [
@@ -129,7 +128,7 @@ function Home(props) {
       type: 'PERSONAL'
     }
     try {
-      const result = await agent.Activity.createActivity(payload);
+      const result = await agent.Event.createEvent(payload);
       if (!result.data.success) {
         alert(result.data.error);
       }
@@ -169,6 +168,12 @@ function Home(props) {
 
   const handleFriendClick = (name) => {
     history.push(`/friend/${name}`);
+  }
+
+  const handleGroupClick = (id) => {
+    console.log('click group')
+    history.push(`/group/${id}`);
+    // history.push({ pathname: `/group/${name}`, data: { id: id } });
   }
 
   useEffect(() => {
@@ -263,13 +268,13 @@ function Home(props) {
                 friendList.map(friend =>
                   <ListItem
                     button
-                    onClick={() => handleFriendClick(friend.name)}
-                    key={friend.name}
+                    onClick={() => handleFriendClick(friend.username)}
+                    key={friend.username}
                     className={classes.listItem}
                   >
-                    <Avatar>{friend.name[0]}</Avatar>
+                    <Avatar>{friend.username[0]}</Avatar>
                     &nbsp;
-                    <ListItemText >{friend.name}</ListItemText>
+                    <ListItemText >{friend.username}</ListItemText>
                     <Box display="inline" mr={10}>
                       {
                         friend.balance >= 0 ?
@@ -285,13 +290,13 @@ function Home(props) {
                 ) : groupList.map(group =>
                   <ListItem
                     button
-                    onClick={() => { }}
-                    key={group.name}
+                    onClick={() => handleGroupClick(group.id)}
+                    key={group.id}
                     className={classes.listItem}
                   >
-                    <Avatar>{group.name[0]}</Avatar>
+                    <Avatar>{group.groupName[0]}</Avatar>
                     &nbsp;
-                    <ListItemText >{group.name}</ListItemText>
+                    <ListItemText >{group.groupName}</ListItemText>
                     <Box display="inline" mr={10}>
                       {
                         group.balance >= 0 ?

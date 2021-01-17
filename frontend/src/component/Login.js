@@ -52,7 +52,7 @@ function Login(props) {
       setIsWaiting(false);
       console.log('result', result);
       if (result.data.success) {
-        setCurrentUser({ ...result.data.data, isLogin: true });
+        setCurrentUser({ username:username, isLogin: true });
         history.push('/');
       } else {
         console.log('result', result)

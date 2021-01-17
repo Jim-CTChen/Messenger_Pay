@@ -26,8 +26,12 @@ const requirement = {
     },
     POST: {
       '/': ['groupName', 'usernames'],
+<<<<<<< HEAD
       '/addUser': ['groupId', 'usernames'],
       '/removeUser': ['groupId', 'usernames']
+=======
+      '/addUser': ['groupId', 'usernames']
+>>>>>>> de193121e19dc4fb21748cd049342237c038432c
     }
   }
 }
