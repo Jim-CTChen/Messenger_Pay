@@ -1,5 +1,6 @@
 const handleMissing = (missingList, obj) => {
   if (!obj) return 'No body!'
+  if (!missingList) return
   let missing = [];
   missingList.forEach(ele => {
     if (!(ele in obj)) missing.push(ele)
