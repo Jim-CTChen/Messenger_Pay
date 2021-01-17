@@ -17,7 +17,7 @@ const requirement = {
       '/': ['creditor', 'debtor', 'amount', 'type']
     },
     PUT: {
-      '/': ['id']
+      '/': ['username', 'eventId']
     }
   },
   group: {
@@ -25,8 +25,9 @@ const requirement = {
       '/': ['username', 'groupId']
     },
     POST: {
-      '/': ['groupName', 'users'],
-      '/addUser': ['groupId', 'usernames']
+      '/': ['groupName', 'usernames'],
+      '/addUser': ['groupId', 'usernames'],
+      '/removeUser': ['groupId', 'usernames']
     }
   }
 }

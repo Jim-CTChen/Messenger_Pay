@@ -81,9 +81,9 @@ api.get('/', async (req, res) => {
 })
 
 api.post('/', async (req, res) => {
-  const { groupName, users } = req.body;
+  const { groupName, usernames } = req.body;
   const userList = await User
-    .find({ username: { $in: users } })
+    .find({ username: { $in: usernames } })
     .select('_id username');
   const idList = userList.map(user => user._id);
   const nameList = userList.map(user => user.username);
@@ -102,10 +102,12 @@ api.post('/', async (req, res) => {
   })
   await newGroup.save();
 
-  users.forEach(async (_user) => {
+  usernames.forEach(async (_user) => {
     const user = await User.findOne({ username: _user });
-    user.groups.push(newGroup._id);
-    await user.save();
+    if (user) {
+      user.groups.push(newGroup._id);
+      await user.save();
+    }
   })
 
   return res.status(200).send({
@@ -132,7 +134,6 @@ api.post('/addUser', async (req, res) => {
   }
 
   let userList = []
-  console.log('group', group)
   const users = await User.find({ username: { $in: usernames } });
   const idList = users.filter(user => !group.users.includes(user._id))
   users.forEach(async (user) => {
@@ -153,6 +154,42 @@ api.post('/addUser', async (req, res) => {
     result = `User ${userList[0]} is added to group ${group.groupName}`
   } else {
     result = `User ${userList.join(', ')} are added to group ${group.groupName}`
+  }
+  return res.status(200).send({
+    success: true,
+    error: null,
+    data: result
+  });
+})
+
+api.post('/removeUser', async (req, res) => {
+  const { groupId, usernames } = req.body;
+  const group = await Group.findById(groupId);
+  if (!group) {
+    return res.status(200).send({
+      success: false,
+      error: 'Group not found!',
+      data: null
+    });
+  }
+  const users = await User.find({ username: { $in: usernames } });
+  const idList = users.map(user => String(user._id));
+  const nameList = users.map(user => user.username);
+  if (idList.length === 0) {
+    return res.status(200).send({
+      success: false,
+      error: 'User all not found!',
+      data: null
+    });
+  }
+  group.users = group.users.filter(id => !idList.includes(String(id)));
+  await group.save();
+  let result = '';
+  if (nameList.length === 1) {
+    result = `User ${nameList[0]} is removed from group!`
+  }
+  else {
+    result = `User ${nameList.join(', ')} are removed from group!`
   }
   return res.status(200).send({
     success: true,

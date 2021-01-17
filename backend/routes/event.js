@@ -33,58 +33,34 @@ api.get('/all', async (req, res) => {
         { path: 'debtor', select: 'username-_id', model: 'user' }
       ]
     })
-
-  let friendName = '';
+  let balance = 0;
   let amount = 0;
-  let newEvent = {};
-  const usernames = [];
-  const balances = [];
-  const events = [];
-  user.events.forEach(event => {
+  let friend = ''
+  const events = user.events.map(event => {
     if (event.creditor.username === username) {
       amount = event.amount;
-      friendName = event.debtor.username;
+      friend = event.debtor.username;
     }
     else {
       amount = -event.amount;
-      friendName = event.creditor.username;
+      friend = event.creditor.username;
     }
-    let index = usernames.findIndex(f => f === friendName);
-    newEvent = {
+    balance += amount;
+    return {
+      friend: friend,
       id: event._id,
       amount: amount,
       type: event.type,
       description: event.description,
-      time: event.time
-    }
-    if (index !== -1) {
-      balances[index] += amount;
-      events[index].push(newEvent);
-    }
-    else {
-      usernames.push(friendName);
-      balances.push(amount);
-      events.push([newEvent]);
+      time: event.timestamp
     }
   })
-
-  const friends = usernames.map((name, idx) => {
-    return {
-      username: name,
-      balance: balances[idx],
-      events: events[idx]
-    }
-  })
-
-  const groups = []
-
   return res.status(200).send({
     success: true,
     error: null,
     data: {
-      username: username,
-      friends: friends,
-      groups: groups
+      balance: balance,
+      events: events
     }
   })
 })
@@ -222,9 +198,9 @@ api.post('/', async (req, res) => {
 })
 
 api.put('/', async (req, res) => {
-  const { id, amount, description } = req.body;
+  const { username, eventId, amount, description } = req.body;
   const event = await Event
-    .findById(id, { '__v': 0 })
+    .findById(eventId, { '__v': 0 })
     .populate({
       path: 'creditor',
       select: 'username-_id',
@@ -235,13 +211,31 @@ api.put('/', async (req, res) => {
       select: 'username-_id',
       model: 'user'
     });
+
+  // except creditor & debtor, other user can't modify event
+  if (event.creditor.username !== username && event.debtor.username) {
+    return res.status(200).send({
+      success: false,
+      error: `User ${username} can't modify this event!`,
+      data: null
+    });
+  }
   event.amount = amount ? amount : event.amount;
   event.description = description ? description : event.description;
   await event.save()
   return res.status(200).send({
     success: true,
     error: null,
-    data: event
+    data: {
+      _id: event._id,
+      amount: event.amount,
+      type: event.type,
+      creditor: event.creditor.username,
+      debtor: event.debtor.username,
+      description: event.description,
+      groupId: event.groupId,
+      time: event.timestamp
+    }
   });
 })
 
