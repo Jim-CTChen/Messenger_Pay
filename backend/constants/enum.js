@@ -1,7 +1,7 @@
-const ACTIVITY_TYPE = [
+const EVENT_TYPE = [
   'PERSONAL', 'GROUP'
 ]
 
 export {
-  ACTIVITY_TYPE
+  EVENT_TYPE
 }

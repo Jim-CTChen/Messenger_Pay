@@ -45,7 +45,9 @@ app.get('/', (req, res) => {
 
 
 import userRouter from './routes/user';
-import activityRouter from './routes/activity';
+import eventRouter from './routes/event';
+import groupRouter from './routes/group';
 
 app.use('/api/user', userRouter);
-app.use('/api/activity', activityRouter);
+app.use('/api/event', eventRouter);
+app.use('/api/group', groupRouter);

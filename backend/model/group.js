@@ -3,19 +3,15 @@ const Schema = mongoose.Schema
 
 // Creating a schema, sort of like working with an ORM
 const GroupSchema = new Schema({
-  id: {
-    type: Number,
-    required: [true, 'id field is required.']
-  },
-  name: {
+  groupName: {
     type: String,
     required: [true, 'name field is required.']
   },
   users: [{
     type: Schema.Types.ObjectId, ref: "user"
   }],
-  activities: [{
-    type: Schema.Types.ObjectId, ref: "activity"
+  events: [{
+    type: Schema.Types.ObjectId, ref: "event"
   }]
 })
 

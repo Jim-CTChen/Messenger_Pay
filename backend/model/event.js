@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
 // Creating a schema, sort of like working with an ORM
-const ActivitySchema = new Schema({
+const EventSchema = new Schema({
   creditor: {
     type: Schema.Types.ObjectId, ref: "user"
   },
@@ -18,6 +18,9 @@ const ActivitySchema = new Schema({
     enum: ['PERSONAL', 'GROUP'],
     default: 'PERSONAL'
   },
+  groupId: {
+    type: Schema.Types.ObjectId, ref: "group"
+  },
   timestamp: {
     type: Date, default: Date.now
   },
@@ -27,7 +30,7 @@ const ActivitySchema = new Schema({
 })
 
 // Creating a table within database with the defined schema
-const Activity = mongoose.model('activity', ActivitySchema)
+const Event = mongoose.model('event', EventSchema)
 
 // Exporting table for querying and mutating
-module.exports = { Activity }
+module.exports = { Event }
