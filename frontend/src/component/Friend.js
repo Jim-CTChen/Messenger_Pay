@@ -1,6 +1,8 @@
 import { React, useState, useEffect, useContext } from 'react';
 import { useHistory, useParams } from 'react-router-dom'
 import dayjs from 'dayjs'
+import TimeAgo from 'javascript-time-ago'
+import zh from 'javascript-time-ago/locale/zh-Hant'
 import PropTypes from 'prop-types';
 import Paper from '@material-ui/core/Paper';
 import { withStyles } from '@material-ui/core/styles';
@@ -10,9 +12,9 @@ import Box from '@material-ui/core/Box'
 import IconButton from '@material-ui/core/IconButton';
 import AddIcon from '@material-ui/icons/Add';
 import HomeIcon from '@material-ui/icons/Home';
+import AccessTimeIcon from '@material-ui/icons/AccessTime';
 import Button from '@material-ui/core/Button'
 import Typography from '@material-ui/core/Typography'
-import db from '../constants/db'
 import { Icon } from '@material-ui/core';
 // Dialog
 import TextField from '@material-ui/core/TextField';
@@ -35,6 +37,9 @@ import Grid from '@material-ui/core/Grid';
 
 import { AuthContext } from '../AuthContext'
 import agent from '../agent'
+
+TimeAgo.addDefaultLocale(zh);
+const timeAgo = new TimeAgo()
 
 const styles = (theme) => ({
   paper: {
@@ -92,6 +97,7 @@ const EVENT_TYPE = {
 function Friend(props) {
   const { classes } = props;
   const [eventList, setEventList] = useState([])
+  const [timeFromNow, setTimeFromNow] = useState(false)
   const [sum, setSum] = useState(0)
   const [openFriendDialog, setOpenFriendDialog] = useState(false);
   const [amountSign, setAmountSign] = useState(false);
@@ -183,119 +189,135 @@ function Friend(props) {
           </Paper>
         </Grid>
       </Grid>
-    
-    <Grid container spacing={3} className={classes.paper}>
-      <Grid item xs>
-        <Paper className={classes.paper} color="primary">
-          <Typography className={classes.typography}>
-            歷史紀錄
+
+      <Grid container spacing={3} className={classes.paper}>
+        <Grid item xs>
+          <Paper className={classes.paper} color="primary">
+            <Typography className={classes.typography}>
+              歷史紀錄
           </Typography>
 
-          <Divider className={classes.divider} />
+            <Divider className={classes.divider} />
 
-          <Box mx={2} mt={1} align='right'>
-            <IconButton onClick={() => setOpenFriendDialog(true)}>
-              <AddIcon />
-            </IconButton>
-            <IconButton onClick={handleBackClick}>
-              <HomeIcon />
-            </IconButton>
-          </Box>
-          
-          <Table>
-            <TableHead>
-              <TableRow>
-                {/* <TableCell></TableCell> */}
-                <TableCell align="center">類型</TableCell>
-                <TableCell align="center">敘述</TableCell>
-                <TableCell align="center">金額</TableCell>
-                <TableCell align="center">時間</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {eventList.map((event, id) => (
-                <TableRow key={id}>
-                  <TableCell align="center">
-                    <Chip
-                      color={EVENT_TYPE[event.type].color}
-                      label={EVENT_TYPE[event.type].label}
-                      variant="outlined"
-                    />
-                  </TableCell>
-                  <TableCell align="center">{event.description}</TableCell>
-                  <TableCell align="center" className={(event.amount < 0) ? classes.red : classes.green}>
-                    {(event.amount < 0) ? event.amount : `+${event.amount}`}
-                  </TableCell>
-                  <TableCell align="center">{dayjs(event.time).format('YYYY/MM/DD HH:mm')}</TableCell>
+            <Box mx={2} mt={1} align='right'>
+              <IconButton onClick={() => setTimeFromNow(!timeFromNow)}>
+                <AccessTimeIcon />
+              </IconButton>
+              <IconButton onClick={() => setOpenFriendDialog(true)}>
+                <AddIcon />
+              </IconButton>
+              <IconButton onClick={handleBackClick}>
+                <HomeIcon />
+              </IconButton>
+
+            </Box>
+
+            <Table>
+              <colgroup>
+                <col width="25%" />
+                <col width="25%" />
+                <col width="25%" />
+                <col width="25%" />
+              </colgroup>
+              <TableHead>
+                <TableRow>
+                  {/* <TableCell></TableCell> */}
+                  <TableCell align="center">類型</TableCell>
+                  <TableCell align="center">敘述</TableCell>
+                  <TableCell align="center">金額</TableCell>
+                  <TableCell align="center">時間</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Paper>
+              </TableHead>
+              <TableBody>
+                {eventList.map((event, id) => (
+                  <TableRow key={id}>
+                    <TableCell align="center">
+                      <Chip
+                        color={EVENT_TYPE[event.type].color}
+                        label={EVENT_TYPE[event.type].label}
+                        variant="outlined"
+                      />
+                    </TableCell>
+                    <TableCell align="center">{event.description}</TableCell>
+                    <TableCell align="center" className={(event.amount < 0) ? classes.red : classes.green}>
+                      {(event.amount < 0) ? event.amount : `+${event.amount}`}
+                    </TableCell>
+                    <TableCell align="center">
+                      {timeFromNow ?
+                        timeAgo.format(new Date(event.time)) :
+                        dayjs(event.time).format('YYYY/MM/DD HH:mm')
+                      }
+                    </TableCell>
+                    {/* <TableCell align="center">{dayjs(event.time).format('YYYY/MM/DD HH:mm')}</TableCell> */}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Paper>
+        </Grid>
       </Grid>
-    </Grid>
 
-    <Dialog
-      open={openFriendDialog}
-      onClose={handleFriendClose}
-      maxWidth="md"
-    >
-      <DialogTitle>新增交易</DialogTitle>
-      <DialogContent>
-        <TextField
-          required
-          disabled
-          margin="dense"
-          label="對象"
-          fullWidth
-          value={friend}
-        />
-      </DialogContent>
-      <DialogContent>
-        <TextField
-          select
-          margin="dense"
-          label="類別"
-          value={amountSign}
-          onChange={e => setAmountSign(e.target.value)}
-        >
-          {sign.map((option) => (
-            <MenuItem key={option.value} value={option.value}>
-              {option.type}
-            </MenuItem>
-          ))}
-        </TextField>
-        <TextField
-          required
-          margin="dense"
-          label="金額"
-          placeholder="請填入數字"
-          value={amount}
-          error={isNaN(amount)}
-          onChange={e => setAmount(e.target.value)}
-        />
-      </DialogContent>
-      <DialogContent>
-        <TextField
-          margin="dense"
-          label="備註"
-          value={comment}
-          fullWidth
-          onChange={e => setComment(e.target.value)}
-        />
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleFriendClose} color="primary">
-          取消
+      <Dialog
+        open={openFriendDialog}
+        onClose={handleFriendClose}
+        maxWidth="md"
+      >
+        <DialogTitle>新增交易</DialogTitle>
+        <DialogContent>
+          <TextField
+            required
+            disabled
+            margin="dense"
+            label="對象"
+            fullWidth
+            value={friend}
+          />
+        </DialogContent>
+        <DialogContent>
+          <TextField
+            select
+            margin="dense"
+            label="類別"
+            value={amountSign}
+            onChange={e => setAmountSign(e.target.value)}
+          >
+            {sign.map((option) => (
+              <MenuItem key={option.value} value={option.value}>
+                {option.type}
+              </MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            required
+            margin="dense"
+            label="金額"
+            placeholder="請填入數字"
+            value={amount}
+            error={isNaN(amount)}
+            onChange={e => setAmount(e.target.value)}
+          />
+        </DialogContent>
+        <DialogContent>
+          <TextField
+            margin="dense"
+            label="備註"
+            value={comment}
+            fullWidth
+            onChange={e => setComment(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleFriendClose} color="primary">
+            取消
         </Button>
-        <Button
-          disabled={isNaN(amount) | amount === ''}
-          onClick={handleFriendSubmit} color="primary"
-        >
-          確認
+          <Button
+            disabled={isNaN(amount) | amount === ''}
+            onClick={handleFriendSubmit} color="primary"
+          >
+            確認
         </Button>
-      </DialogActions>
-    </Dialog>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }

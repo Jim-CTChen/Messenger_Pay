@@ -1,9 +1,14 @@
 import { React, useState, useEffect, useContext } from 'react';
 import { useHistory, useParams, useLocation } from 'react-router-dom'
 import dayjs from 'dayjs'
+import TimeAgo from 'javascript-time-ago'
+import zh from 'javascript-time-ago/locale/zh-Hant'
 import PropTypes from 'prop-types';
 import Paper from '@material-ui/core/Paper';
 import { withStyles } from '@material-ui/core/styles';
+import FormControl from '@material-ui/core/FormControl';
+import InputLabel from '@material-ui/core/InputLabel';
+import Select from '@material-ui/core/Select';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import Divider from '@material-ui/core/Divider'
@@ -12,10 +17,10 @@ import Box from '@material-ui/core/Box'
 import IconButton from '@material-ui/core/IconButton';
 import AddIcon from '@material-ui/icons/Add';
 import HomeIcon from '@material-ui/icons/Home';
+import AccessTimeIcon from '@material-ui/icons/AccessTime';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Button from '@material-ui/core/Button'
 import Typography from '@material-ui/core/Typography'
-import db from '../constants/db'
 import { Icon } from '@material-ui/core';
 // Dialog
 import TextField from '@material-ui/core/TextField';
@@ -38,6 +43,8 @@ import Grid from '@material-ui/core/Grid';
 
 import { AuthContext } from '../AuthContext'
 import agent from '../agent'
+
+const timeAgo = new TimeAgo()
 
 const styles = (theme) => ({
   paper: {
@@ -96,11 +103,11 @@ function Group(props) {
   const { classes } = props;
   const [memberList, setMemberList] = useState([])
   const [eventList, setEventList] = useState([])
+  const [timeFromNow, setTimeFromNow] = useState(false)
   const [sum, setSum] = useState(0)
   const [openDialog, setOpenDialog] = useState(false);
   const [creditor, setCreditor] = useState('');
   const [debtor, setDebtor] = useState('');
-  const [amountSign, setAmountSign] = useState(false);
   const [amount, setAmount] = useState('');
   const [comment, setComment] = useState('');
   const [openAddUserDialog, setOpenAddUserDialog] = useState(false);
@@ -115,8 +122,8 @@ function Group(props) {
 
   const handleGroupSubmit = async () => {
     const payload = {
-      creditor: amountSign ? debtor : creditor,
-      debtor: amountSign ? creditor : debtor,
+      creditor: creditor,
+      debtor: debtor,
       amount: Number(amount),
       description: comment,
       type: 'GROUP',
@@ -131,7 +138,6 @@ function Group(props) {
         setOpenDialog(false);
         setCreditor('');
         setDebtor('');
-        setAmountSign(false);
         setAmount('');
         setComment('');
         getGroupInfo();
@@ -140,7 +146,6 @@ function Group(props) {
       setOpenDialog(false);
       setCreditor('');
       setDebtor('');
-      setAmountSign(false);
       setAmount('');
       setComment('');
       alert(error)
@@ -272,6 +277,9 @@ function Group(props) {
             <Divider className={classes.divider} />
 
             <Box mx={2} mt={1} align='right'>
+              <IconButton onClick={() => setTimeFromNow(!timeFromNow)}>
+                <AccessTimeIcon />
+              </IconButton>
               <IconButton onClick={() => setOpenDialog(true)}>
                 <AddIcon />
               </IconButton>
@@ -281,6 +289,13 @@ function Group(props) {
             </Box>
 
             <Table>
+              <colgroup>
+                <col width="20%" />
+                <col width="20%" />
+                <col width="20%" />
+                <col width="20%" />
+                <col width="20%" />
+              </colgroup>
               <TableHead>
                 <TableRow>
                   <TableCell align="center">債權人</TableCell>
@@ -309,7 +324,12 @@ function Group(props) {
                     <TableCell align="center" className={(event.amount < 0) ? classes.red : classes.green}>
                       {(event.amount < 0) ? event.amount : `+${event.amount}`}
                     </TableCell>
-                    <TableCell align="center">{dayjs(event.time).format('YYYY/MM/DD HH:mm')}</TableCell>
+                    <TableCell align="center">
+                      {timeFromNow ?
+                        timeAgo.format(new Date(event.time)) :
+                        dayjs(event.time).format('YYYY/MM/DD HH:mm')
+                      }
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -317,7 +337,7 @@ function Group(props) {
           </Paper>
         </Grid>
       </Grid>
-      
+
       <Dialog
         open={openDialog}
         onClose={handleClose}
@@ -327,37 +347,40 @@ function Group(props) {
         <DialogContent>
           <TextField
             required
+            select
             margin="dense"
             label="債權人"
             fullWidth
             value={creditor}
             onChange={e => setCreditor(e.target.value)}
-          />
+          >
+            {memberList && memberList.map(member =>
+              <MenuItem value={member} key={member}>
+                {member}
+              </MenuItem>
+            )}
+          </TextField>
         </DialogContent>
         <DialogContent>
           <TextField
             required
+            select
             margin="dense"
             label="債務人"
             fullWidth
+            error={debtor !== '' && creditor === debtor}
+            helperText={debtor !== '' && creditor === debtor && '債務人不可與債權人相同'}
             value={debtor}
             onChange={e => setDebtor(e.target.value)}
-          />
+          >
+            {memberList && memberList.map(member =>
+              <MenuItem value={member} key={member}>
+                {member}
+              </MenuItem>
+            )}
+          </TextField>
         </DialogContent>
         <DialogContent>
-          <TextField
-            select
-            margin="dense"
-            label="類別"
-            value={amountSign}
-            onChange={e => setAmountSign(e.target.value)}
-          >
-            {sign.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                {option.type}
-              </MenuItem>
-            ))}
-          </TextField>
           <TextField
             required
             margin="dense"
@@ -382,7 +405,13 @@ function Group(props) {
             取消
           </Button>
           <Button
-            disabled={creditor === '' | debtor === '' | isNaN(amount) | amount === ''}
+            disabled={
+              creditor === '' ||
+              debtor === '' ||
+              isNaN(amount) ||
+              amount === '' ||
+              creditor === debtor
+            }
             onClick={handleGroupSubmit} color="primary"
           >
             確認

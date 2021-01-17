@@ -8,5 +8,8 @@
   "scripts": {
     "start": "cd frontend && yarn start",
     "server": "cd backend && yarn server"
+  },
+  "dependencies": {
+    "javascript-time-ago": "^2.3.4"
   }
 }
