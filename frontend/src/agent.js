@@ -12,13 +12,19 @@ const User = {
   getUserInfo: async (name) => await axios.get(`/user?username=${name}`)
 }
 
-const Activity = {
-  createActivity: async (body) => await axios.post('/activity', body),
-  getFriendActivity: async (user, friend) =>
-    await axios.get(`/activity/friend?username=${user}&friendName=${friend}`),
+const Event = {
+  createEvent: async (body) => await axios.post('/event', body),
+  getFriendEvent: async (user, friend) =>
+    await axios.get(`/event/friend?username=${user}&friendName=${friend}`),
+}
+
+const Group = {
+  getGroupEvent: async (user, id) =>
+    await axios.get(`/group?username=${user}&groupId=${id}`),
 }
 
 export default {
   User,
-  Activity
+  Event,
+  Group
 }

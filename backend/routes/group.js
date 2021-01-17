@@ -81,9 +81,9 @@ api.get('/', async (req, res) => {
 })
 
 api.post('/', async (req, res) => {
-  const { groupName, users } = req.body;
+  const { groupName, usernames } = req.body;
   const userList = await User
-    .find({ username: { $in: users } })
+    .find({ username: { $in: usernames } })
     .select('_id username');
   const idList = userList.map(user => user._id);
   const nameList = userList.map(user => user.username);
@@ -102,7 +102,7 @@ api.post('/', async (req, res) => {
   })
   await newGroup.save();
 
-  users.forEach(async (_user) => {
+  usernames.forEach(async (_user) => {
     const user = await User.findOne({ username: _user });
     user.groups.push(newGroup._id);
     await user.save();

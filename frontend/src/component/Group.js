@@ -1,5 +1,5 @@
 import { React, useState, useEffect, useContext } from 'react';
-import { useHistory, useParams } from 'react-router-dom'
+import { useHistory, useParams, useLocation } from 'react-router-dom'
 import dayjs from 'dayjs'
 import PropTypes from 'prop-types';
 import Paper from '@material-ui/core/Paper';
@@ -88,27 +88,31 @@ const EVENT_TYPE = {
   },
 }
 
-function Friend(props) {
+function Group(props) {
   const { classes } = props;
+  const [memberList, setMemberList] = useState([])
   const [eventList, setEventList] = useState([])
   const [sum, setSum] = useState(0)
   const history = useHistory();
+  const location = useLocation();
   const { currentUser } = useContext(AuthContext);
-  const { friend } = useParams();
+  const { id } = useParams();
 
   const handleBackClick = () => {
     history.goBack();
   }
 
-  const getEventInfo = async () => {
+  const getGroupInfo = async () => {
+    console.log('click')
     if (!currentUser.username) return
     try {
-      const result = await agent.Event.getFriendEvent(currentUser.username, friend);
+      const result = await agent.Group.getGroupEvent(currentUser.username, id);
       if (!result.data.success) {
         alert(result.data.error);
       }
       else {
         console.log('result', result.data.data.events)
+        setMemberList(result.data.data.users)
         setEventList(result.data.data.events)
       }
     } catch (error) {
@@ -117,8 +121,7 @@ function Friend(props) {
   }
 
   useEffect(() => {
-    console.log('friend')
-    getEventInfo();
+    getGroupInfo();
   }, [])
 
   useEffect(() => {
@@ -166,17 +169,23 @@ function Friend(props) {
               <TableRow key={id}>
                 <TableCell>
                   <Box style={{ display: 'flex' }}>
-                    <Avatar>{friend[0]}</Avatar> &nbsp;
-                    <Typography>{friend}</Typography>
+                    <Avatar>{event.creditor[0]}</Avatar> &nbsp;
+                    <Typography>{event.creditor}</Typography>
                   </Box>
                 </TableCell>
-                <TableCell align="right">
+                <TableCell>
+                  <Box style={{ display: 'flex' }}>
+                    <Avatar>{event.debtor[0]}</Avatar> &nbsp;
+                    <Typography>{event.debtor}</Typography>
+                  </Box>
+                </TableCell>
+                {/* <TableCell align="right">
                   <Chip
                     color={EVENT_TYPE[event.type].color}
                     label={EVENT_TYPE[event.type].label}
                     variant="outlined"
                   />
-                </TableCell>
+                </TableCell> */}
                 <TableCell align="right">{event.description}</TableCell>
                 <TableCell align="right" className={(event.amount < 0) ? classes.red : classes.green}>
                   {(event.amount < 0) ? event.amount : `+${event.amount}`}
@@ -191,8 +200,8 @@ function Friend(props) {
   );
 }
 
-Friend.propTypes = {
+Group.propTypes = {
   classes: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles)(Friend);
+export default withStyles(styles)(Group);

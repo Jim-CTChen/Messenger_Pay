@@ -25,7 +25,7 @@ const requirement = {
       '/': ['username', 'groupId']
     },
     POST: {
-      '/': ['groupName', 'users'],
+      '/': ['groupName', 'usernames'],
       '/addUser': ['groupId', 'usernames']
     }
   }
