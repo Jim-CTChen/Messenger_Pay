@@ -182,6 +182,12 @@ api.post('/removeUser', async (req, res) => {
       data: null
     });
   }
+  users.forEach(async (user) => {
+    console.log('groups', user.groups)
+    user.groups = user.groups.filter(group => String(group) !== groupId);
+    console.log('groups', user.groups)
+    await user.save();
+  })
   group.users = group.users.filter(id => !idList.includes(String(id)));
   await group.save();
   let result = '';
