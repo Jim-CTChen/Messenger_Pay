@@ -643,7 +643,7 @@ function Group(props) {
         }}
       >
         <MenuItem onClick={handleEditClick}>編輯</MenuItem>
-        <MenuItem onClick={handlePayBackClick}>收還錢</MenuItem>
+        <MenuItem onClick={handlePayBackClick}>{currentDebtor === currentUser.username ? "還錢" : "收錢"}</MenuItem>
       </Menu>
 
       <Dialog
@@ -803,7 +803,7 @@ function Group(props) {
         onClose={handlePayBackClose}
         maxWidth="md"
       >
-        <DialogTitle>{payBackSign ? `${currentCreditor}還給${currentDebtor}` : `${currentCreditor}向${currentDebtor}收取`}</DialogTitle>
+        <DialogTitle>{currentDebtor === currentUser.username ? `${currentDebtor}還給${currentCreditor}` : `${currentCreditor}向${currentDebtor}收取`}</DialogTitle>
         <DialogContent>
           <TextField
             required

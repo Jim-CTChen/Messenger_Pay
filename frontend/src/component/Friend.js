@@ -515,7 +515,7 @@ function Friend(props) {
         }}
       >
         <MenuItem onClick={handleEditClick}>編輯</MenuItem>
-        <MenuItem onClick={handlePayBackClick}>收還錢</MenuItem>
+        <MenuItem onClick={handlePayBackClick}>{payBackSign ? "還錢" : "收錢"}</MenuItem>
       </Menu>
 
       <Dialog
