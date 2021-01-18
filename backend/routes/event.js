@@ -213,7 +213,7 @@ api.put('/', async (req, res) => {
     });
 
   // except creditor & debtor, other user can't modify event
-  if (event.creditor.username !== username && event.debtor.username) {
+  if (event.creditor.username !== username && event.debtor.username !== username) {
     return res.status(200).send({
       success: false,
       error: `User ${username} can't modify this event!`,
