@@ -14,7 +14,7 @@ export default {
 
     // 群組
     // { path: '/groups', name: 'myGroups', component: Group },
-    { path: '/group/:id', name: 'group', component: Group },
+    { path: '/group/:groupName/:id', name: 'group', component: Group },
 
     // 朋友
     { path: '/friend/:friend', name: 'friend', component: Friend },

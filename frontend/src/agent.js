@@ -16,6 +16,7 @@ const Event = {
   createEvent: async (body) => await axios.post('/event', body),
   getFriendEvent: async (user, friend) =>
     await axios.get(`/event/friend?username=${user}&friendName=${friend}`),
+  updateEvent: async (body) => await axios.put('/event', body)
 }
 
 const Group = {

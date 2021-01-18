@@ -9,8 +9,6 @@ import { withStyles } from '@material-ui/core/styles';
 import FormControl from '@material-ui/core/FormControl';
 import InputLabel from '@material-ui/core/InputLabel';
 import Select from '@material-ui/core/Select';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
 import Divider from '@material-ui/core/Divider'
 import Avatar from '@material-ui/core/Avatar';
 import Box from '@material-ui/core/Box'
@@ -40,6 +38,16 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 
 import Grid from '@material-ui/core/Grid';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemText from '@material-ui/core/ListItemText';
+import ListItemAvatar from '@material-ui/core/ListItemAvatar';
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
+import Collapse from '@material-ui/core/Collapse';
+import InboxIcon from '@material-ui/icons/MoveToInbox';
+import ExpandLess from '@material-ui/icons/ExpandLess';
+import ExpandMore from '@material-ui/icons/ExpandMore';
 
 import { AuthContext } from '../AuthContext'
 import agent from '../agent'
@@ -104,7 +112,8 @@ function Group(props) {
   const [memberList, setMemberList] = useState([])
   const [eventList, setEventList] = useState([])
   const [timeFromNow, setTimeFromNow] = useState(false)
-  const [sum, setSum] = useState(0)
+  const [sum, setSum] = useState(0);
+  const [groupMemberOpen, setGroupMemberOpen] = useState(false)
   const [openDialog, setOpenDialog] = useState(false);
   const [creditor, setCreditor] = useState('');
   const [debtor, setDebtor] = useState('');
@@ -114,7 +123,11 @@ function Group(props) {
   const [addUser, setAddUser] = useState('');
   const history = useHistory();
   const { currentUser } = useContext(AuthContext);
-  const { id } = useParams();
+  const { groupName, id } = useParams();
+
+  const handleClick = () => {
+    setGroupMemberOpen(!groupMemberOpen);
+  };
 
   const handleClose = () => {
     setOpenDialog(false)
@@ -226,10 +239,10 @@ function Group(props) {
     if (eventList.length === 0) return
     let total = 0
     eventList.forEach(ele => {
-      total += ele.amount
+      if (ele.creditor === currentUser.username) total += ele.amount
+      else if (ele.debtor === currentUser.username) total -= ele.amount
     })
     setSum(total)
-    console.log('total', total)
   }, [eventList])
 
   return (
@@ -237,32 +250,51 @@ function Group(props) {
       <Grid container spacing={3} className={classes.paper}>
         <Grid item xs>
           <Paper className={classes.blockPaper} color="primary">
-            <Typography className={classes.typography}>
-              群組成員
-            </Typography>
-
-            <Divider className={classes.divider} />
-
-            <Box mx={2} mt={1} align='right'>
-              <IconButton onClick={() => setOpenAddUserDialog(true)}>
-                <AddIcon />
-              </IconButton>
-            </Box>
-
-            <List>
-              {memberList.map((user, id) => (
-                <ListItem className={classes.listItem}>
-                  <IconButton onClick={() => handleRemoveUser(user)}>
-                    <DeleteIcon />
-                  </IconButton> &nbsp;
-                  <Avatar>{user[0]}</Avatar> &nbsp;
-                  <Typography>{user}</Typography>
-                </ListItem>
-              ))}
-              {/* <Typography >
+            <Box mx={2} style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Box style={{ display: 'flex' }}>
+                <Avatar>{groupName[0]}</Avatar> &nbsp;
+                <Typography>{groupName}</Typography>
+              </Box>
+              <Typography >
                 {`合計：${(sum < 0) ? '' : '+'}${sum}`}
-              </Typography> */}
-            </List>
+              </Typography>
+            </Box>
+          </Paper>
+        </Grid>
+      </Grid>
+
+      <Grid container spacing={3} className={classes.paper}>
+        <Grid item xs>
+          <Paper className={classes.blockPaper} color="primary">
+            <ListItem button onClick={handleClick}>
+              <ListItemText primary="群組成員" />
+              {groupMemberOpen ? <ExpandLess /> : <ExpandMore />}
+            </ListItem>
+            <Collapse in={groupMemberOpen} timeout="auto" unmountOnExit>
+              <List component="div" disablePadding>
+                <Box mx={2} mt={1} align='right'>
+                  <IconButton onClick={() => setOpenAddUserDialog(true)}>
+                    <AddIcon />
+                  </IconButton>
+                </Box>
+                {memberList.map((user, id) => (
+                  <ListItem className={classes.listItem}>
+                    <ListItemAvatar>
+                      <Avatar>{user[0]}</Avatar>
+                    </ListItemAvatar>
+                    <ListItemText primary={user} />
+                    <ListItemSecondaryAction>
+                      <IconButton
+                        edge="end" aria-label="delete"
+                        onClick={() => handleRemoveUser(user)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </ListItemSecondaryAction>
+                  </ListItem>
+                ))}
+              </List>
+            </Collapse>
           </Paper>
         </Grid>
       </Grid>

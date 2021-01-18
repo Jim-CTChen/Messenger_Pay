@@ -88,6 +88,9 @@ const sign = [
 
 function Home(props) {
   const { classes } = props;
+  const [posAmount, setPosAmount] = useState(0);
+  const [negAmount, setNegAmount] = useState(0);
+  const [totalAmount, setTotalAmount] = useState(0);
   const [tabValue, setTabValue] = useState(0)
   const [filter, setFilter] = useState(FILTER[0])
   const [openFriendDialog, setOpenFriendDialog] = useState(false);
@@ -117,6 +120,35 @@ function Home(props) {
   useEffect(() => {
     handleIsLogin();
   }, [history])
+
+  const handleAmountCalculate = () => { 
+    let pos = 0
+    let neg = 0
+    if (tabValue === 0) {
+      if (friendList.length === 0) return
+      friendList.forEach(friend => {
+        if (friend.balance >= 0) pos += friend.balance
+        else neg += friend.balance
+      })
+      setPosAmount(pos)
+      setNegAmount(neg)
+      setTotalAmount(pos+neg)
+    }
+    else if (tabValue === 1) {
+      if (groupList.length === 0) return
+      groupList.forEach(group => {
+        if (group.balance >= 0) pos += group.balance
+        else neg += group.balance
+      })
+      setPosAmount(pos)
+      setNegAmount(neg)
+      setTotalAmount(pos+neg)
+    }
+  }
+
+  useEffect(() => {
+    handleAmountCalculate();
+  }, [friendList, groupList, tabValue])
 
   const handleFriendClose = () => {
     setOpenFriendDialog(false)
@@ -202,8 +234,8 @@ function Home(props) {
     history.push(`/friend/${name}`);
   }
 
-  const handleGroupClick = (id) => {
-    history.push(`/group/${id}`);
+  const handleGroupClick = (groupName, id) => {
+    history.push(`/group/${groupName}/${id}`);
     // history.push({ pathname: `/group/${name}`, data: { id: id } });
   }
 
@@ -224,7 +256,7 @@ function Home(props) {
             <Divider className={classes.divider} variant="middle" />
             <div className={classes.blockSec2}>
               <Typography variant="h5">
-                1000
+                {posAmount}
               </Typography>
             </div>
           </Paper>
@@ -239,7 +271,7 @@ function Home(props) {
             <Divider className={classes.divider} variant="middle" />
             <div className={classes.blockSec2}>
               <Typography variant="h5">
-                700
+                {negAmount}
               </Typography>
             </div>
           </Paper>
@@ -254,7 +286,7 @@ function Home(props) {
             <Divider className={classes.divider} variant="middle" />
             <div className={classes.blockSec2}>
               <Typography variant="h5">
-                300
+                {totalAmount}
               </Typography>
             </div>
           </Paper>
@@ -322,7 +354,7 @@ function Home(props) {
                 ) : groupList.map(group =>
                   <ListItem
                     button
-                    onClick={() => handleGroupClick(group.id)}
+                    onClick={() => handleGroupClick(group.groupName, group.id)}
                     key={group.id}
                     className={classes.listItem}
                   >
