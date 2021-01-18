@@ -318,11 +318,13 @@ function Friend(props) {
     const finalAmountData = [];
 
     for (const [key, value] of Object.entries(userAmountData)) {
-      finalAmountData.push({
-        title: key,
-        value: Math.round(value),
-        unit: '元'
-      });
+      if (value !== 0) {
+        finalAmountData.push({
+          title: key,
+          value: Math.round(value),
+          unit: '元'
+        });
+      }
     }
     setAmountChartData(finalAmountData);
 
