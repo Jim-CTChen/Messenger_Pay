@@ -194,7 +194,12 @@ function Group(props) {
         alert(result.data.error);
       }
       else {
-        getGroupInfo();
+        if (user === currentUser.username) {
+          history.replace('/home')
+        }
+        else {
+          getGroupInfo();
+        }
       }
     } catch (error) {
       alert(error)
@@ -202,14 +207,15 @@ function Group(props) {
   }
 
   const getGroupInfo = async () => {
-    if (!currentUser.username) return
+    if (!currentUser.username) history.push('/home')
     try {
       const result = await agent.Group.getGroupEvent(currentUser.username, id);
       if (!result.data.success) {
         alert(result.data.error);
+        history.push('/home')
       }
       else {
-        console.log('result', result.data.data.events)
+        // console.log('result', result.data.data.events)
         setMemberList(result.data.data.users)
         setEventList(result.data.data.events)
       }
