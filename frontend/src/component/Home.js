@@ -16,7 +16,6 @@ import IconButton from '@material-ui/core/IconButton';
 import AddIcon from '@material-ui/icons/Add';
 import Button from '@material-ui/core/Button'
 import Typography from '@material-ui/core/Typography'
-import db from '../constants/db'
 import { Icon } from '@material-ui/core';
 // Dialog
 import TextField from '@material-ui/core/TextField';
@@ -121,7 +120,7 @@ function Home(props) {
     handleIsLogin();
   }, [history])
 
-  const handleAmountCalculate = () => { 
+  const handleAmountCalculate = () => {
     let pos = 0
     let neg = 0
     if (tabValue === 0) {
@@ -132,7 +131,7 @@ function Home(props) {
       })
       setPosAmount(pos)
       setNegAmount(neg)
-      setTotalAmount(pos+neg)
+      setTotalAmount(pos + neg)
     }
     else if (tabValue === 1) {
       if (groupList.length === 0) return
@@ -142,7 +141,7 @@ function Home(props) {
       })
       setPosAmount(pos)
       setNegAmount(neg)
-      setTotalAmount(pos+neg)
+      setTotalAmount(pos + neg)
     }
   }
 
@@ -453,7 +452,7 @@ function Home(props) {
           </Button>
         </DialogActions>
       </Dialog>
-    
+
       <Dialog
         open={openGroupDialog}
         onClose={handleGroupClose}

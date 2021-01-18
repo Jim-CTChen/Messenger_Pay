@@ -5,14 +5,6 @@ import TimeAgo from 'javascript-time-ago'
 import PropTypes from 'prop-types';
 import Paper from '@material-ui/core/Paper';
 import { withStyles } from '@material-ui/core/styles';
-<<<<<<< HEAD
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-=======
-import FormControl from '@material-ui/core/FormControl';
-import InputLabel from '@material-ui/core/InputLabel';
-import Select from '@material-ui/core/Select';
->>>>>>> b4f9c745d671746c7969e71218eb379976598a52
 import Divider from '@material-ui/core/Divider'
 import Avatar from '@material-ui/core/Avatar';
 import Box from '@material-ui/core/Box'

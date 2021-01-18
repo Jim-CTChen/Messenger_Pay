@@ -50,7 +50,7 @@ function About(props) {
       <Box>
         <PieChart
           lineWidth={lineWidth}
-          radius={40}
+          radius={30}
           label={({ dataEntry, dataIndex }) => {
             if (hover === dataIndex) {
               return Math.round(dataEntry.percentage) + '%';
