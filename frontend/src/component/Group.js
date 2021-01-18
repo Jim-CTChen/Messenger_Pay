@@ -2,13 +2,9 @@ import { React, useState, useEffect, useContext } from 'react';
 import { useHistory, useParams, useLocation } from 'react-router-dom'
 import dayjs from 'dayjs'
 import TimeAgo from 'javascript-time-ago'
-import zh from 'javascript-time-ago/locale/zh-Hant'
 import PropTypes from 'prop-types';
 import Paper from '@material-ui/core/Paper';
 import { withStyles } from '@material-ui/core/styles';
-import FormControl from '@material-ui/core/FormControl';
-import InputLabel from '@material-ui/core/InputLabel';
-import Select from '@material-ui/core/Select';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import Divider from '@material-ui/core/Divider'

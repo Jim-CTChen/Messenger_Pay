@@ -1,18 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import AppBar from '@material-ui/core/AppBar';
-import Toolbar from '@material-ui/core/Toolbar';
-import Typography from '@material-ui/core/Typography';
-import Paper from '@material-ui/core/Paper';
-import Grid from '@material-ui/core/Grid';
-import Button from '@material-ui/core/Button';
-import TextField from '@material-ui/core/TextField';
-import Tooltip from '@material-ui/core/Tooltip';
-import IconButton from '@material-ui/core/IconButton';
 import { withStyles } from '@material-ui/core/styles';
-import Container from '@material-ui/core/Container'
-import SearchIcon from '@material-ui/icons/Search';
-import RefreshIcon from '@material-ui/icons/Refresh';
+import { PieChart } from 'react-minimal-pie-chart';
+import Box from '@material-ui/core/Box'
+
+const data = [
+  { title: 'One', value: 10, color: '#E38627' },
+  { title: 'Two', value: 15, color: '#C13C37' },
+  { title: 'Three', value: 20, color: '#6A2135' },
+]
 
 const styles = (theme) => ({
   paper: {
@@ -37,12 +33,44 @@ const styles = (theme) => ({
   },
 });
 
+const defaultLabelStyle = {
+  fontSize: '5px',
+  fontFamily: 'sans-serif',
+  fill: 'white'
+};
+
+const lineWidth = 60;
 function About(props) {
   const { classes } = props;
+  const [hover, setHover] = useState(null)
 
   return (
     <div>
       About page
+      <Box>
+        <PieChart
+          lineWidth={lineWidth}
+          radius={40}
+          label={({ dataEntry, dataIndex }) => {
+            if (hover === dataIndex) {
+              return Math.round(dataEntry.percentage) + '%';
+            }
+            else {
+              return dataEntry.title
+            }
+          }}
+          labelStyle={defaultLabelStyle}
+          animate
+          data={data}
+          labelPosition={100 - lineWidth / 2}
+          onMouseOver={(_, index) => {
+            setHover(index);
+          }}
+          onMouseOut={() => {
+            setHover(undefined);
+          }}
+        />
+      </Box>
     </div>
   );
 }
