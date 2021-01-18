@@ -13,6 +13,7 @@ import AddIcon from '@material-ui/icons/Add';
 import HomeIcon from '@material-ui/icons/Home';
 import AccessTimeIcon from '@material-ui/icons/AccessTime';
 import DeleteIcon from '@material-ui/icons/Delete';
+import MoreVertIcon from '@material-ui/icons/MoreVert';
 import Button from '@material-ui/core/Button'
 import Typography from '@material-ui/core/Typography'
 import { Icon } from '@material-ui/core';
@@ -23,6 +24,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem';
 import Chip from '@material-ui/core/Chip'
 
@@ -111,12 +113,26 @@ function Group(props) {
   const [sum, setSum] = useState(0);
   const [groupMemberOpen, setGroupMemberOpen] = useState(false)
   const [openDialog, setOpenDialog] = useState(false);
+  const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [openPayBackDialog, setOpenPayBackDialog] = useState(false);
   const [creditor, setCreditor] = useState('');
   const [debtor, setDebtor] = useState('');
   const [amount, setAmount] = useState('');
   const [comment, setComment] = useState('');
   const [openAddUserDialog, setOpenAddUserDialog] = useState(false);
   const [addUser, setAddUser] = useState('');
+  const [editSign, setEditSign] = useState(false);
+  const [editAmount, setEditAmount] = useState('');
+  const [editComment, setEditComment] = useState('');
+  const [payBackSign, setPayBackSign] = useState(false);
+  const [payBackAmount, setPayBackAmount] = useState(0);
+  const [payBackComment, setPayBackComment] = useState('');
+  const [currentCreditor, setCurrentCreditor] = useState('');
+  const [currentDebtor, setCurrentDebtor] = useState('');
+
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [currentEventId, setCurrentEventId] = useState('');
+
   const history = useHistory();
   const { currentUser } = useContext(AuthContext);
   const { groupName, id } = useParams();
@@ -224,7 +240,6 @@ function Group(props) {
         history.push('/home')
       }
       else {
-        // console.log('result', result.data.data.events)
         setMemberList(result.data.data.users)
         setEventList(result.data.data.events)
       }
@@ -232,6 +247,94 @@ function Group(props) {
       alert(error);
     }
   }
+
+  const handleEventMoreActionClick = (e, id, creditor, debtor, amount, comment) => {
+    setAnchorEl(e.currentTarget)
+    setCurrentEventId(id)
+    setCurrentCreditor(creditor)
+    setCurrentDebtor(debtor)
+    setEditSign((Number(amount) >= 0) ? false : true)
+    setEditAmount((Number(amount) >= 0) ? Number(amount) : (-1)*Number(amount))
+    setEditComment(comment)
+    setPayBackSign((Number(amount) >= 0) ? false : true)
+    setPayBackAmount((Number(amount) >= 0) ? Number(amount) : (-1)*Number(amount))
+    setPayBackComment((Number(amount) >= 0) ? `收錢：${comment}` : `還錢：${comment}`)
+  }
+
+  const handleEditClick = () => {
+    setAnchorEl(null)
+    setOpenEditDialog(true);
+  }
+
+  const handleEditClose = () => {
+    setOpenEditDialog(false)
+  };
+
+  const handleEditSubmit = async () => {
+    const payload = {
+      username: currentUser.username,
+      eventId: currentEventId,
+      amount: Number(editAmount),
+      description: editComment,
+      type: 'GROUP',
+    }
+    try {
+      const result = await agent.Event.updateEvent(payload);
+      if (!result.data.success) {
+        alert(result.data.error);
+      }
+      else {
+        setOpenEditDialog(false);
+        setEditAmount('');
+        setEditComment('');
+        getGroupInfo();
+      }
+    } catch (error) {
+      setOpenEditDialog(false);
+      setEditAmount('');
+      setEditComment('');
+      alert(error)
+    }
+  };
+
+  const handlePayBackClick = () => {
+    setAnchorEl(null)
+    setOpenPayBackDialog(true);
+  }
+
+  const handlePayBackClose = () => {
+    setOpenPayBackDialog(false)
+  };
+
+  const handlePayBackSubmit = async () => {
+    const payload = {
+      creditor: payBackSign ? currentCreditor : currentDebtor,
+      debtor: payBackSign ? currentDebtor : currentCreditor,
+      amount: Number(payBackAmount),
+      description: payBackComment,
+      type: 'GROUP',
+      groupId: id
+    }
+    try {
+      const result = await agent.Event.createEvent(payload);
+      if (!result.data.success) {
+        alert(result.data.error);
+      }
+      else {
+        setOpenPayBackDialog(false);
+        setPayBackSign(false);
+        setPayBackAmount(0);
+        setPayBackComment('');
+        getGroupInfo();
+      }
+    } catch (error) {
+      setOpenPayBackDialog(false);
+      setPayBackSign(false);
+      setPayBackAmount(0);
+      setPayBackComment('');
+      alert(error)
+    }
+  };
 
   useEffect(() => {
     getGroupInfo();
@@ -324,11 +427,12 @@ function Group(props) {
 
             <Table>
               <colgroup>
+                <col width="15%" />
+                <col width="15%" />
+                <col width="25%" />
                 <col width="20%" />
                 <col width="20%" />
-                <col width="20%" />
-                <col width="20%" />
-                <col width="20%" />
+                <col width="5%" />
               </colgroup>
               <TableHead>
                 <TableRow>
@@ -337,6 +441,7 @@ function Group(props) {
                   <TableCell align="center">敘述</TableCell>
                   <TableCell align="center">金額</TableCell>
                   <TableCell align="center">時間</TableCell>
+                  <TableCell align="center"></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -364,6 +469,16 @@ function Group(props) {
                         dayjs(event.time).format('YYYY/MM/DD HH:mm')
                       }
                     </TableCell>
+                    <TableCell align="center">
+                      {(currentUser.username === event.creditor |
+                        currentUser.username === event.debtor) ?
+                          <IconButton onClick={e => 
+                            handleEventMoreActionClick(e, event.id, event.creditor, event.debtor, event.amount, event.description)}
+                          >
+                            <MoreVertIcon />
+                          </IconButton> : <></>
+                      }
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -371,6 +486,26 @@ function Group(props) {
           </Paper>
         </Grid>
       </Grid>
+
+      <Menu
+        id="account-menu"
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={() => setAnchorEl(null)}
+        keepMounted
+        getContentAnchorEl={null}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'center'
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'center'
+        }}
+      >
+        <MenuItem onClick={handleEditClick}>編輯</MenuItem>
+        <MenuItem onClick={handlePayBackClick}>收還錢</MenuItem>
+      </Menu>
 
       <Dialog
         open={openDialog}
@@ -419,9 +554,9 @@ function Group(props) {
             required
             margin="dense"
             label="金額"
-            placeholder="請填入數字"
+            placeholder="請填入非負數字"
             value={amount}
-            error={isNaN(amount)}
+            error={isNaN(amount) | amount < 0}
             onChange={e => setAmount(e.target.value)}
           />
         </DialogContent>
@@ -444,6 +579,7 @@ function Group(props) {
               debtor === '' ||
               isNaN(amount) ||
               amount === '' ||
+              amount < 0 ||
               creditor === debtor
             }
             onClick={handleGroupSubmit} color="primary"
@@ -483,6 +619,84 @@ function Group(props) {
         </DialogActions>
       </Dialog>
 
+      <Dialog
+        open={openEditDialog}
+        onClose={handleEditClose}
+        maxWidth="md"
+      >
+        <DialogTitle>編輯交易</DialogTitle>
+        <DialogContent>
+          <Typography>{payBackSign ? `${currentCreditor}欠${currentDebtor}` : `${currentDebtor}欠${currentCreditor}`}</Typography>
+          <TextField
+            required
+            margin="dense"
+            label="金額"
+            placeholder="請填入非負數字"
+            value={editAmount}
+            error={isNaN(editAmount) | editAmount < 0}
+            onChange={e => setEditAmount(e.target.value)}
+          />
+        </DialogContent>
+        <DialogContent>
+          <TextField
+            margin="dense"
+            label="備註"
+            value={editComment}
+            fullWidth
+            onChange={e => setEditComment(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleEditClose} color="primary">
+            取消
+        </Button>
+          <Button
+            disabled={isNaN(editAmount) | editAmount === '' | editAmount < 0}
+            onClick={handleEditSubmit} color="primary"
+          >
+            確認
+        </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openPayBackDialog}
+        onClose={handlePayBackClose}
+        maxWidth="md"
+      >
+        <DialogTitle>{payBackSign ? `${currentCreditor}還給${currentDebtor}` : `${currentCreditor}向${currentDebtor}收取`}</DialogTitle>
+        <DialogContent>
+          <TextField
+            required
+            margin="dense"
+            label="金額"
+            placeholder="請填入非負數字"
+            value={payBackAmount}
+            error={isNaN(payBackAmount) | payBackAmount < 0}
+            onChange={e => setPayBackAmount(e.target.value)}
+          />
+        </DialogContent>
+        <DialogContent>
+          <TextField
+            margin="dense"
+            label="備註"
+            value={payBackComment}
+            fullWidth
+            onChange={e => setPayBackComment(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handlePayBackClose} color="primary">
+            取消
+        </Button>
+          <Button
+            disabled={isNaN(payBackAmount) | payBackAmount === '' | payBackAmount < 0}
+            onClick={handlePayBackSubmit} color="primary"
+          >
+            確認
+        </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }

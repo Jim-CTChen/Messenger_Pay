@@ -13,6 +13,7 @@ import IconButton from '@material-ui/core/IconButton';
 import AddIcon from '@material-ui/icons/Add';
 import HomeIcon from '@material-ui/icons/Home';
 import AccessTimeIcon from '@material-ui/icons/AccessTime';
+import MoreVertIcon from '@material-ui/icons/MoreVert';
 import Button from '@material-ui/core/Button'
 import Typography from '@material-ui/core/Typography'
 import { Icon } from '@material-ui/core';
@@ -23,6 +24,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem';
 import Chip from '@material-ui/core/Chip'
 
@@ -100,9 +102,20 @@ function Friend(props) {
   const [timeFromNow, setTimeFromNow] = useState(false)
   const [sum, setSum] = useState(0)
   const [openFriendDialog, setOpenFriendDialog] = useState(false);
+  const [openFriendEditDialog, setOpenFriendEditDialog] = useState(false);
+  const [openFriendPayBackDialog, setOpenFriendPayBackDialog] = useState(false);
   const [amountSign, setAmountSign] = useState(false);
   const [amount, setAmount] = useState('');
   const [comment, setComment] = useState('');
+  const [editSign, setEditSign] = useState(false);
+  const [editAmount, setEditAmount] = useState('');
+  const [editComment, setEditComment] = useState('');
+  const [payBackSign, setPayBackSign] = useState(false);
+  const [payBackAmount, setPayBackAmount] = useState(0);
+  const [payBackComment, setPayBackComment] = useState('')
+
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [currentEventId, setCurrentEventId] = useState('');
   const history = useHistory();
   const { currentUser } = useContext(AuthContext);
   const { friend } = useParams();
@@ -150,13 +163,97 @@ function Friend(props) {
         alert(result.data.error);
       }
       else {
-        console.log('result', result.data.data.events)
         setEventList(result.data.data.events)
       }
     } catch (error) {
       alert(error);
     }
   }
+
+  const handleEventMoreActionClick = (e, id, amount, comment) => {
+    setAnchorEl(e.currentTarget)
+    setCurrentEventId(id)
+    setEditSign((Number(amount) >= 0) ? false : true)
+    setEditAmount((Number(amount) >= 0) ? Number(amount) : (-1)*Number(amount))
+    setEditComment(comment)
+    setPayBackSign((Number(amount) >= 0) ? false : true)
+    setPayBackAmount((Number(amount) >= 0) ? Number(amount) : (-1)*Number(amount))
+    setPayBackComment((Number(amount) >= 0) ? `收錢：${comment}` : `還錢：${comment}`)
+  }
+
+  const handleEditClick = () => {
+    setAnchorEl(null)
+    setOpenFriendEditDialog(true);
+  }
+
+  const handleFriendEditClose = () => {
+    setOpenFriendEditDialog(false)
+  };
+
+  const handleFriendEditSubmit = async () => {
+    const payload = {
+      username: currentUser.username,
+      eventId: currentEventId,
+      amount: Number(editAmount),
+      description: editComment,
+      type: 'PERSONAL',
+    }
+    try {
+      const result = await agent.Event.updateEvent(payload);
+      if (!result.data.success) {
+        alert(result.data.error);
+      }
+      else {
+        setOpenFriendEditDialog(false);
+        setEditAmount('');
+        setEditComment('');
+        getEventInfo();
+      }
+    } catch (error) {
+      setOpenFriendEditDialog(false);
+      setEditAmount('');
+      setEditComment('');
+      alert(error)
+    }
+  };
+
+  const handlePayBackClick = () => {
+    setAnchorEl(null)
+    setOpenFriendPayBackDialog(true);
+  }
+
+  const handleFriendPayBackClose = () => {
+    setOpenFriendPayBackDialog(false)
+  };
+
+  const handleFriendPayBackSubmit = async () => {
+    const payload = {
+      creditor: payBackSign ? currentUser.username : friend,
+      debtor: payBackSign ? friend : currentUser.username,
+      amount: Number(payBackAmount),
+      description: payBackComment,
+      type: 'PERSONAL'
+    }
+    try {
+      const result = await agent.Event.createEvent(payload);
+      if (!result.data.success) {
+        alert(result.data.error);
+      }
+      else {
+        setOpenFriendPayBackDialog(false);
+        setPayBackSign(false);
+        setPayBackAmount(0);
+        setPayBackComment('');
+        getEventInfo();
+      }
+    } catch (error) {
+      setOpenFriendPayBackDialog(false);
+      setPayBackSign(false);
+      setPayBackAmount(0);
+      setPayBackComment('');
+      alert(error)
+    }
+  };
 
   useEffect(() => {
     getEventInfo();
@@ -169,7 +266,6 @@ function Friend(props) {
       total += ele.amount
     })
     setSum(total)
-    console.log('total', total)
   }, [eventList])
 
   return (
@@ -195,7 +291,7 @@ function Friend(props) {
           <Paper className={classes.paper} color="primary">
             <Typography className={classes.typography}>
               歷史紀錄
-          </Typography>
+            </Typography>
 
             <Divider className={classes.divider} />
 
@@ -209,23 +305,23 @@ function Friend(props) {
               <IconButton onClick={handleBackClick}>
                 <HomeIcon />
               </IconButton>
-
             </Box>
 
             <Table>
               <colgroup>
+                <col width="15%" />
+                <col width="30%" />
                 <col width="25%" />
                 <col width="25%" />
-                <col width="25%" />
-                <col width="25%" />
+                <col width="5%" />
               </colgroup>
               <TableHead>
                 <TableRow>
-                  {/* <TableCell></TableCell> */}
                   <TableCell align="center">類型</TableCell>
                   <TableCell align="center">敘述</TableCell>
                   <TableCell align="center">金額</TableCell>
                   <TableCell align="center">時間</TableCell>
+                  <TableCell align="center"></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -248,7 +344,13 @@ function Friend(props) {
                         dayjs(event.time).format('YYYY/MM/DD HH:mm')
                       }
                     </TableCell>
-                    {/* <TableCell align="center">{dayjs(event.time).format('YYYY/MM/DD HH:mm')}</TableCell> */}
+                    <TableCell align="center">
+                      <IconButton onClick={e => 
+                        handleEventMoreActionClick(e, event.id, event.amount, event.description)}
+                      >
+                        <MoreVertIcon />
+                      </IconButton>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -256,6 +358,26 @@ function Friend(props) {
           </Paper>
         </Grid>
       </Grid>
+
+      <Menu
+        id="account-menu"
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={() => setAnchorEl(null)}
+        keepMounted
+        getContentAnchorEl={null}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'center'
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'center'
+        }}
+      >
+        <MenuItem onClick={handleEditClick}>編輯</MenuItem>
+        <MenuItem onClick={handlePayBackClick}>收還錢</MenuItem>
+      </Menu>
 
       <Dialog
         open={openFriendDialog}
@@ -291,9 +413,9 @@ function Friend(props) {
             required
             margin="dense"
             label="金額"
-            placeholder="請填入數字"
+            placeholder="請填入非負數字"
             value={amount}
-            error={isNaN(amount)}
+            error={isNaN(amount) | amount < 0}
             onChange={e => setAmount(e.target.value)}
           />
         </DialogContent>
@@ -311,8 +433,87 @@ function Friend(props) {
             取消
         </Button>
           <Button
-            disabled={isNaN(amount) | amount === ''}
+            disabled={isNaN(amount) | amount === '' | amount < 0}
             onClick={handleFriendSubmit} color="primary"
+          >
+            確認
+        </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openFriendEditDialog}
+        onClose={handleFriendEditClose}
+        maxWidth="md"
+      >
+        <DialogTitle>編輯交易</DialogTitle>
+        <DialogContent>
+          <Typography>{payBackSign ? `我欠${friend}` : `${friend}欠我`}</Typography>
+          <TextField
+            required
+            margin="dense"
+            label="金額"
+            placeholder="請填入非負數字"
+            value={editAmount}
+            error={isNaN(editAmount) | editAmount < 0}
+            onChange={e => setEditAmount(e.target.value)}
+          />
+        </DialogContent>
+        <DialogContent>
+          <TextField
+            margin="dense"
+            label="備註"
+            value={editComment}
+            fullWidth
+            onChange={e => setEditComment(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleFriendEditClose} color="primary">
+            取消
+        </Button>
+          <Button
+            disabled={isNaN(editAmount) | editAmount === '' | editAmount < 0}
+            onClick={handleFriendEditSubmit} color="primary"
+          >
+            確認
+        </Button>
+        </DialogActions>
+      </Dialog>
+    
+      <Dialog
+        open={openFriendPayBackDialog}
+        onClose={handleFriendPayBackClose}
+        maxWidth="md"
+      >
+        <DialogTitle>{payBackSign ? `還給${friend}` : `向${friend}收取`}</DialogTitle>
+        <DialogContent>
+          <TextField
+            required
+            margin="dense"
+            label="金額"
+            placeholder="請填入非負數字"
+            value={payBackAmount}
+            error={isNaN(payBackAmount) | payBackAmount < 0}
+            onChange={e => setPayBackAmount(e.target.value)}
+          />
+        </DialogContent>
+        <DialogContent>
+          <TextField
+            margin="dense"
+            label="備註"
+            value={payBackComment}
+            fullWidth
+            onChange={e => setPayBackComment(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleFriendPayBackClose} color="primary">
+            取消
+        </Button>
+          <Button
+            disabled={isNaN(payBackAmount) | payBackAmount === '' | payBackAmount < 0}
+            onClick={handleFriendPayBackSubmit} color="primary"
           >
             確認
         </Button>
