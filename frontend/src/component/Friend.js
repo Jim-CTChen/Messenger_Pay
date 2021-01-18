@@ -395,9 +395,24 @@ function Friend(props) {
                 <Avatar>{friend[0]}</Avatar> &nbsp;
                 <Typography>{friend}</Typography>
               </Box>
-              <Typography >
-                {`合計：${(sum < 0) ? '' : '+'}${sum}`}
-              </Typography>
+              <Box style={{ display: 'flex' }}>
+                <Typography>
+                  {`合計：${(sum < 0) ? '' : '+'}${sum}`}
+                </Typography>&nbsp;&nbsp;
+                <Button
+                  size="small"
+                  variant="outlined"
+                  color={sum < 0 ? "secondary" : "primary"}
+                  onClick={() => {
+                    setComment(sum < 0 ? '還清' : '結清')
+                    setAmountSign(sum >= 0);
+                    setAmount(Math.abs(sum));
+                    setOpenFriendDialog(true);
+                  }}
+                >
+                  {sum < 0 ? '還清' : '結清'}
+                </Button>
+              </Box>
             </Box>
           </Paper>
         </Grid>
@@ -572,13 +587,13 @@ function Friend(props) {
         <DialogActions>
           <Button onClick={handleFriendClose} color="primary">
             取消
-        </Button>
+          </Button>
           <Button
             disabled={isNaN(amount) | amount === '' | amount < 0}
             onClick={handleFriendSubmit} color="primary"
           >
             確認
-        </Button>
+          </Button>
         </DialogActions>
       </Dialog>
 
@@ -612,13 +627,13 @@ function Friend(props) {
         <DialogActions>
           <Button onClick={handleFriendEditClose} color="primary">
             取消
-        </Button>
+          </Button>
           <Button
             disabled={isNaN(editAmount) | editAmount === '' | editAmount < 0}
             onClick={handleFriendEditSubmit} color="primary"
           >
             確認
-        </Button>
+          </Button>
         </DialogActions>
       </Dialog>
 
