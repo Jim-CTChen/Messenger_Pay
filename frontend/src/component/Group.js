@@ -4,6 +4,8 @@ import dayjs from 'dayjs'
 import TimeAgo from 'javascript-time-ago'
 import PropTypes from 'prop-types';
 import Paper from '@material-ui/core/Paper';
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
 import { withStyles } from '@material-ui/core/styles';
 import Divider from '@material-ui/core/Divider'
 import Avatar from '@material-ui/core/Avatar';
@@ -90,13 +92,21 @@ const styles = (theme) => ({
   },
 });
 
+const TAB_VALUE = [
+  { key: 0, label: '歷史紀錄' },
+  { key: 1, label: '統計' }
+]
+
 function Group(props) {
   const { classes } = props;
-  const [memberList, setMemberList] = useState([])
-  const [eventList, setEventList] = useState([])
-  const [timeFromNow, setTimeFromNow] = useState(false)
+
+  const [tabValue, setTabValue] = useState(0);
+  const [memberList, setMemberList] = useState([]);
+  const [eventList, setEventList] = useState([]);
+  const [memberBalance, setMemberBalance] = useState([])
+  const [timeFromNow, setTimeFromNow] = useState(false);
   const [sum, setSum] = useState(0);
-  const [groupMemberOpen, setGroupMemberOpen] = useState(false)
+  const [groupMemberOpen, setGroupMemberOpen] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [openPayBackDialog, setOpenPayBackDialog] = useState(false);
@@ -335,6 +345,16 @@ function Group(props) {
       else if (ele.debtor === currentUser.username) total -= ele.amount
     })
     setSum(total)
+
+    let balanceList = [];
+    for (let i = 0; i < memberList.length; i += 1) { balanceList.push(0); }
+    eventList.forEach(event => {
+      let creditorIdx = memberList.findIndex(member => event.creditor === member);
+      let debtorIdx = memberList.findIndex(member => event.debtor === member);
+      balanceList[creditorIdx] += event.amount;
+      balanceList[debtorIdx] -= event.amount;
+    })
+    setMemberBalance(balanceList);
   }, [eventList])
 
   useEffect(() => {
@@ -497,7 +517,7 @@ function Group(props) {
                     <AddIcon />
                   </IconButton>
                 </Box>
-                {memberList.map((user, id) => (
+                {memberList.map((user, idx) => (
                   <ListItem className={classes.listItem}>
                     <ListItemAvatar>
                       <Avatar>{user[0]}</Avatar>
@@ -522,110 +542,119 @@ function Group(props) {
       <Grid container spacing={3} className={classes.paper}>
         <Grid item xs>
           <Paper className={classes.paper} color="primary">
-            <Typography className={classes.typography}>
-              歷史紀錄
-            </Typography>
+            <Tabs
+              value={tabValue}
+              indicatorColor="primary"
+              textColor="primary"
+              onChange={(e, value) => { setTabValue(value) }}
+            >
+              {
+                TAB_VALUE.map(tab =>
+                  <Tab
+                    value={tab.key}
+                    key={tab.key}
+                    label={tab.label}
+                  />)
+              }
 
+            </Tabs>
             <Divider className={classes.divider} />
+            {
+              tabValue === 0 ?
+                <>
+                  <Box mx={2} mt={1} align='right'>
+                    <IconButton onClick={() => setTimeFromNow(!timeFromNow)}>
+                      <AccessTimeIcon />
+                    </IconButton>
+                    <IconButton onClick={() => setOpenDialog(true)}>
+                      <AddIcon />
+                    </IconButton>
+                    <IconButton onClick={handleBackClick}>
+                      <HomeIcon />
+                    </IconButton>
+                  </Box>
 
-            <Box mx={2} mt={1} align='right'>
-              <IconButton onClick={() => setTimeFromNow(!timeFromNow)}>
-                <AccessTimeIcon />
-              </IconButton>
-              <IconButton onClick={() => setOpenDialog(true)}>
-                <AddIcon />
-              </IconButton>
-              <IconButton onClick={handleBackClick}>
-                <HomeIcon />
-              </IconButton>
-            </Box>
-
-            <Table>
-              <colgroup>
-                <col width="15%" />
-                <col width="15%" />
-                <col width="25%" />
-                <col width="20%" />
-                <col width="20%" />
-                <col width="5%" />
-              </colgroup>
-              <TableHead>
-                <TableRow>
-                  <TableCell align="center">債權人</TableCell>
-                  <TableCell align="center">債務人</TableCell>
-                  <TableCell align="center">敘述</TableCell>
-                  <TableCell align="center">金額</TableCell>
-                  <TableCell align="center">時間</TableCell>
-                  <TableCell align="center"></TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {eventList.map((event, id) => (
-                  <TableRow key={id}>
-                    <TableCell align="center">
-                      <Box style={{ display: 'flex' }}>
-                        <Avatar>{event.creditor[0]}</Avatar> &nbsp;
+                  <Table>
+                    <colgroup>
+                      <col width="15%" />
+                      <col width="15%" />
+                      <col width="25%" />
+                      <col width="20%" />
+                      <col width="20%" />
+                      <col width="5%" />
+                    </colgroup>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell align="center">債權人</TableCell>
+                        <TableCell align="center">債務人</TableCell>
+                        <TableCell align="center">敘述</TableCell>
+                        <TableCell align="center">金額</TableCell>
+                        <TableCell align="center">時間</TableCell>
+                        <TableCell align="center"></TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {eventList.map((event, id) => (
+                        <TableRow key={id}>
+                          <TableCell align="center">
+                            <Box style={{ display: 'flex' }}>
+                              <Avatar>{event.creditor[0]}</Avatar> &nbsp;
                         <Typography>{event.creditor}</Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell align="center">
-                      <Box style={{ display: 'flex' }}>
-                        <Avatar>{event.debtor[0]}</Avatar> &nbsp;
+                            </Box>
+                          </TableCell>
+                          <TableCell align="center">
+                            <Box style={{ display: 'flex' }}>
+                              <Avatar>{event.debtor[0]}</Avatar> &nbsp;
                         <Typography>{event.debtor}</Typography>
+                            </Box>
+                          </TableCell>
+                          <TableCell align="center">{event.description}</TableCell>
+                          <TableCell align="center" className={(event.amount < 0) ? classes.red : classes.green}>
+                            {(event.amount < 0) ? event.amount : `+${event.amount}`}
+                          </TableCell>
+                          <TableCell align="center">
+                            {timeFromNow ?
+                              timeAgo.format(new Date(event.time)) :
+                              dayjs(event.time).format('YYYY/MM/DD HH:mm')
+                            }
+                          </TableCell>
+                          <TableCell align="center">
+                            {(currentUser.username === event.creditor |
+                              currentUser.username === event.debtor) ?
+                              <IconButton onClick={e =>
+                                handleEventMoreActionClick(e, event.id, event.creditor, event.debtor, event.amount, event.description)}
+                              >
+                                <MoreVertIcon />
+                              </IconButton> : <></>
+                            }
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </> :
+                <>
+                  <Grid container>
+                    <Grid item xs={6}>
+                      <Box pt={3}>
+                        <Typography variant="h5" align="center">欠債時間長度</Typography>
+                        <MyPieChart data={timeChartData} />
                       </Box>
-                    </TableCell>
-                    <TableCell align="center">{event.description}</TableCell>
-                    <TableCell align="center" className={(event.amount < 0) ? classes.red : classes.green}>
-                      {(event.amount < 0) ? event.amount : `+${event.amount}`}
-                    </TableCell>
-                    <TableCell align="center">
-                      {timeFromNow ?
-                        timeAgo.format(new Date(event.time)) :
-                        dayjs(event.time).format('YYYY/MM/DD HH:mm')
-                      }
-                    </TableCell>
-                    <TableCell align="center">
-                      {(currentUser.username === event.creditor |
-                        currentUser.username === event.debtor) ?
-                        <IconButton onClick={e =>
-                          handleEventMoreActionClick(e, event.id, event.creditor, event.debtor, event.amount, event.description)}
-                        >
-                          <MoreVertIcon />
-                        </IconButton> : <></>
-                      }
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Box pt={3}>
+                        <Typography variant="h5" align="center">最高欠債金額</Typography>
+                        <MyPieChart data={amountChartData} />
+                      </Box>
+                    </Grid>
+                  </Grid>
+                </>
+            }
+
           </Paper>
         </Grid>
       </Grid>
 
-      <Grid container spacing={3} className={classes.paper}>
-        <Grid item xs>
-          <Paper className={classes.paper} color="primary">
-            <Typography className={classes.typography}>
-              統計
-            </Typography>
-            <Divider className={classes.divider} />
-            <Grid container>
-              <Grid item xs={6}>
-                <Box pt={3}>
-                  <Typography variant="h5" align="center">欠債時間長度</Typography>
-                  <MyPieChart data={timeChartData} />
-                </Box>
-              </Grid>
-              <Grid item xs={6}>
-                <Box pt={3}>
-                  <Typography variant="h5" align="center">最高欠債金額</Typography>
-                  <MyPieChart data={amountChartData} />
-                </Box>
-              </Grid>
-            </Grid>
-          </Paper>
-        </Grid>
-      </Grid>
       <Menu
         id="account-menu"
         anchorEl={anchorEl}

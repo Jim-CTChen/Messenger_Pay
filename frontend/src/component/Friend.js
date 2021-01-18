@@ -5,6 +5,8 @@ import TimeAgo from 'javascript-time-ago'
 import zh from 'javascript-time-ago/locale/zh-Hant'
 import PropTypes from 'prop-types';
 import Paper from '@material-ui/core/Paper';
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
 import { withStyles } from '@material-ui/core/styles';
 import Divider from '@material-ui/core/Divider'
 import Avatar from '@material-ui/core/Avatar';
@@ -97,11 +99,18 @@ const EVENT_TYPE = {
   },
 }
 
+const TAB_VALUE = [
+  { key: 0, label: '歷史紀錄' },
+  { key: 1, label: '統計' }
+]
+
 function Friend(props) {
   const { classes } = props;
+
+  const [tabValue, setTabValue] = useState(0);
   const [eventList, setEventList] = useState([])
   const [timeFromNow, setTimeFromNow] = useState(false)
-  const [sum, setSum] = useState(0)
+  const [sum, setSum] = useState(0);
   const [openFriendDialog, setOpenFriendDialog] = useState(false);
   const [openFriendEditDialog, setOpenFriendEditDialog] = useState(false);
   const [openFriendPayBackDialog, setOpenFriendPayBackDialog] = useState(false);
@@ -399,19 +408,21 @@ function Friend(props) {
                 <Typography>
                   {`合計：${(sum < 0) ? '' : '+'}${sum}`}
                 </Typography>&nbsp;&nbsp;
-                <Button
-                  size="small"
-                  variant="outlined"
-                  color={sum < 0 ? "secondary" : "primary"}
-                  onClick={() => {
-                    setComment(sum < 0 ? '還清' : '結清')
-                    setAmountSign(sum >= 0);
-                    setAmount(Math.abs(sum));
-                    setOpenFriendDialog(true);
-                  }}
-                >
-                  {sum < 0 ? '還清' : '結清'}
-                </Button>
+                {sum !== 0 &&
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    color={sum < 0 ? "secondary" : "primary"}
+                    onClick={() => {
+                      setComment(sum < 0 ? '還清' : '結清')
+                      setAmountSign(sum >= 0);
+                      setAmount(Math.abs(sum));
+                      setOpenFriendDialog(true);
+                    }}
+                  >
+                    {sum < 0 ? '還清' : '結清'}
+                  </Button>
+                }
               </Box>
             </Box>
           </Paper>
@@ -421,100 +432,110 @@ function Friend(props) {
       <Grid container spacing={3} className={classes.paper}>
         <Grid item xs>
           <Paper className={classes.paper} color="primary">
-            <Typography className={classes.typography}>
-              歷史紀錄
-            </Typography>
+            <Tabs
+              value={tabValue}
+              indicatorColor="primary"
+              textColor="primary"
+              onChange={(e, value) => { setTabValue(value) }}
+            >
+              {
+                TAB_VALUE.map(tab =>
+                  <Tab
+                    value={tab.key}
+                    key={tab.key}
+                    label={tab.label}
+                  />)
+              }
 
+            </Tabs>
             <Divider className={classes.divider} />
+            {
+              tabValue === 0 ?
+                <>
+                  <Box mx={2} mt={1} align='right'>
+                    <IconButton onClick={() => setTimeFromNow(!timeFromNow)}>
+                      <AccessTimeIcon />
+                    </IconButton>
+                    <IconButton onClick={() => setOpenFriendDialog(true)}>
+                      <AddIcon />
+                    </IconButton>
+                    <IconButton onClick={handleBackClick}>
+                      <HomeIcon />
+                    </IconButton>
+                  </Box>
 
-            <Box mx={2} mt={1} align='right'>
-              <IconButton onClick={() => setTimeFromNow(!timeFromNow)}>
-                <AccessTimeIcon />
-              </IconButton>
-              <IconButton onClick={() => setOpenFriendDialog(true)}>
-                <AddIcon />
-              </IconButton>
-              <IconButton onClick={handleBackClick}>
-                <HomeIcon />
-              </IconButton>
-            </Box>
+                  <Table>
+                    <colgroup>
+                      <col width="15%" />
+                      <col width="30%" />
+                      <col width="25%" />
+                      <col width="25%" />
+                      <col width="5%" />
+                    </colgroup>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell align="center">類型</TableCell>
+                        <TableCell align="center">敘述</TableCell>
+                        <TableCell align="center">金額</TableCell>
+                        <TableCell align="center">時間</TableCell>
+                        <TableCell align="center"></TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {eventList.map((event, id) => (
+                        <TableRow key={id}>
+                          <TableCell align="center">
+                            <Chip
+                              color={EVENT_TYPE[event.type].color}
+                              label={EVENT_TYPE[event.type].label}
+                              variant="outlined"
+                            />
+                          </TableCell>
+                          <TableCell align="center">{event.description}</TableCell>
+                          <TableCell align="center" className={(event.amount < 0) ? classes.red : classes.green}>
+                            {(event.amount < 0) ? event.amount : `+${event.amount}`}
+                          </TableCell>
+                          <TableCell align="center">
+                            {timeFromNow ?
+                              timeAgo.format(new Date(event.time)) :
+                              dayjs(event.time).format('YYYY/MM/DD HH:mm')
+                            }
+                          </TableCell>
+                          <TableCell align="center">
+                            <IconButton onClick={e =>
+                              handleEventMoreActionClick(e, event.id, event.amount, event.description)}
+                            >
+                              <MoreVertIcon />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </> :
+                <>
+                  <Grid container>
+                    <Grid item xs={6}>
+                      <Box pt={3}>
+                        <Typography variant="h5" align="center">欠債時間長度</Typography>
+                        <MyPieChart data={timeChartData} />
+                      </Box>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Box pt={3}>
+                        <Typography variant="h5" align="center">最高欠債金額</Typography>
+                        <MyPieChart data={amountChartData} />
+                      </Box>
+                    </Grid>
+                  </Grid>
+                </>
+            }
 
-            <Table>
-              <colgroup>
-                <col width="15%" />
-                <col width="30%" />
-                <col width="25%" />
-                <col width="25%" />
-                <col width="5%" />
-              </colgroup>
-              <TableHead>
-                <TableRow>
-                  <TableCell align="center">類型</TableCell>
-                  <TableCell align="center">敘述</TableCell>
-                  <TableCell align="center">金額</TableCell>
-                  <TableCell align="center">時間</TableCell>
-                  <TableCell align="center"></TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {eventList.map((event, id) => (
-                  <TableRow key={id}>
-                    <TableCell align="center">
-                      <Chip
-                        color={EVENT_TYPE[event.type].color}
-                        label={EVENT_TYPE[event.type].label}
-                        variant="outlined"
-                      />
-                    </TableCell>
-                    <TableCell align="center">{event.description}</TableCell>
-                    <TableCell align="center" className={(event.amount < 0) ? classes.red : classes.green}>
-                      {(event.amount < 0) ? event.amount : `+${event.amount}`}
-                    </TableCell>
-                    <TableCell align="center">
-                      {timeFromNow ?
-                        timeAgo.format(new Date(event.time)) :
-                        dayjs(event.time).format('YYYY/MM/DD HH:mm')
-                      }
-                    </TableCell>
-                    <TableCell align="center">
-                      <IconButton onClick={e =>
-                        handleEventMoreActionClick(e, event.id, event.amount, event.description)}
-                      >
-                        <MoreVertIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+
           </Paper>
         </Grid>
       </Grid>
 
-      <Grid container spacing={3} className={classes.paper}>
-        <Grid item xs>
-          <Paper className={classes.paper} color="primary">
-            <Typography className={classes.typography}>
-              統計
-            </Typography>
-            <Divider className={classes.divider} />
-            <Grid container>
-              <Grid item xs={6}>
-                <Box pt={3}>
-                  <Typography variant="h5" align="center">欠債時間長度</Typography>
-                  <MyPieChart data={timeChartData} />
-                </Box>
-              </Grid>
-              <Grid item xs={6}>
-                <Box pt={3}>
-                  <Typography variant="h5" align="center">最高欠債金額</Typography>
-                  <MyPieChart data={amountChartData} />
-                </Box>
-              </Grid>
-            </Grid>
-          </Paper>
-        </Grid>
-      </Grid>
       <Menu
         id="account-menu"
         anchorEl={anchorEl}
