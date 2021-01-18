@@ -35,6 +35,7 @@ import TableRow from '@material-ui/core/TableRow';
 
 import Grid from '@material-ui/core/Grid';
 
+import MyPieChart from './MyPieChart';
 import { AuthContext } from '../AuthContext'
 import agent from '../agent'
 
@@ -103,6 +104,9 @@ function Friend(props) {
   const [amountSign, setAmountSign] = useState(false);
   const [amount, setAmount] = useState('');
   const [comment, setComment] = useState('');
+  const [timeChartData, setTimeChartData] = useState([]);
+  const [amountChartData, setAmountChartData] = useState([]);
+
   const history = useHistory();
   const { currentUser } = useContext(AuthContext);
   const { friend } = useParams();
@@ -172,6 +176,117 @@ function Friend(props) {
     console.log('total', total)
   }, [eventList])
 
+  useEffect(() => { // parse chart data
+    if (!eventList) return;
+    const username = currentUser.username;
+    const newData = [...eventList, { time: new Date().toISOString() }];
+    const userTimeData = {};
+    const userAmountData = {};
+    userTimeData[`${username}`] = 0;
+    userAmountData[`${username}`] = 0;
+    userTimeData[`${friend}`] = 0;
+    userAmountData[`${friend}`] = 0;
+    let balance = 0;
+    newData.forEach((ele, idx) => {
+      if (ele.amount) {
+        balance += ele.amount;
+        // amount chart data
+        if (balance > 0) {
+          if (userAmountData[`${friend}`] < balance) {
+            userAmountData[`${friend}`] = balance;
+          }
+        }
+        else if (balance < 0) {
+          if (userAmountData[`${username}`] < -balance) {
+            userAmountData[`${username}`] = -balance;
+          }
+        }
+
+        // time chart data
+        let interval = new Date(newData[idx + 1].time) - new Date(ele.time);
+        if (balance > 0) {
+          if (userTimeData[`${friend}`]) {
+            userTimeData[`${friend}`] += interval;
+          }
+          else userTimeData[`${friend}`] = interval;
+        }
+        else if (balance < 0) {
+          if (userTimeData[`${username}`]) {
+            userTimeData[`${username}`] += interval;
+          }
+          else userTimeData[`${username}`] = interval;
+        }
+      }
+    })
+    // amount chart data
+    const finalAmountData = [];
+
+    for (const [key, value] of Object.entries(userAmountData)) {
+      finalAmountData.push({
+        title: key,
+        value: Math.round(value),
+        unit: '元'
+      });
+    }
+    setAmountChartData(finalAmountData);
+
+    // time chart data
+    const finalTimeData = [];
+    const dayOffset = 24 * 60 * 60 * 1000;
+    const hourOffset = 60 * 60 * 1000;
+    const minOffset = 60 * 1000;
+    const secOffset = 1000;
+    if (Object.values(userTimeData).some(value => value >= dayOffset / 2)) {
+      for (const [key, value] of Object.entries(userTimeData)) {
+        let roundedValue = Math.round(value / dayOffset, -1);
+        if (roundedValue !== 0) {
+          finalTimeData.push({
+            title: key,
+            value: roundedValue,
+            unit: '天'
+          });
+        }
+      }
+    }
+    else if (Object.values(userTimeData).some(value => value >= hourOffset / 2)) {
+      for (const [key, value] of Object.entries(userTimeData)) {
+        let roundedValue = Math.round(value / hourOffset, -1);
+        if (roundedValue !== 0) {
+          finalTimeData.push({
+            title: key,
+            value: roundedValue,
+            unit: '小時'
+          });
+        }
+      }
+    }
+    else if (Object.values(userTimeData).some(value => value >= minOffset / 2)) {
+      for (const [key, value] of Object.entries(userTimeData)) {
+        let roundedValue = Math.round(value / minOffset, -1);
+        if (roundedValue !== 0) {
+          finalTimeData.push({
+            title: key,
+            value: roundedValue,
+            unit: '分鐘'
+          });
+        }
+      }
+    }
+    else {
+      for (const [key, value] of Object.entries(userTimeData)) {
+        let roundedValue = Math.round(value / secOffset, -1);
+        if (roundedValue !== 0) {
+          finalTimeData.push({
+            title: key,
+            value: roundedValue,
+            unit: '秒鐘'
+          });
+        }
+      }
+    }
+    setTimeChartData(finalTimeData);
+  }, [eventList])
+
   return (
     <>
       <Grid container spacing={3} className={classes.paper}>
@@ -195,7 +310,7 @@ function Friend(props) {
           <Paper className={classes.paper} color="primary">
             <Typography className={classes.typography}>
               歷史紀錄
-          </Typography>
+            </Typography>
 
             <Divider className={classes.divider} />
 
@@ -248,11 +363,35 @@ function Friend(props) {
                         dayjs(event.time).format('YYYY/MM/DD HH:mm')
                       }
                     </TableCell>
-                    {/* <TableCell align="center">{dayjs(event.time).format('YYYY/MM/DD HH:mm')}</TableCell> */}
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
+          </Paper>
+        </Grid>
+      </Grid>
+
+      <Grid container spacing={3} className={classes.paper}>
+        <Grid item xs>
+          <Paper className={classes.paper} color="primary">
+            <Typography className={classes.typography}>
+              統計
+            </Typography>
+            <Divider className={classes.divider} />
+            <Grid container>
+              <Grid item xs={6}>
+                <Box pt={3}>
+                  <Typography variant="h5" align="center">欠債時間長度</Typography>
+                  <MyPieChart data={timeChartData} />
+                </Box>
+              </Grid>
+              <Grid item xs={6}>
+                <Box pt={3}>
+                  <Typography variant="h5" align="center">最高欠債金額</Typography>
+                  <MyPieChart data={amountChartData} />
+                </Box>
+              </Grid>
+            </Grid>
           </Paper>
         </Grid>
       </Grid>

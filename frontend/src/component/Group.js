@@ -15,7 +15,7 @@ import AccessTimeIcon from '@material-ui/icons/AccessTime';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Button from '@material-ui/core/Button'
 import Typography from '@material-ui/core/Typography'
-import { Icon } from '@material-ui/core';
+import { Icon, useEventCallback } from '@material-ui/core';
 // Dialog
 import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
@@ -45,6 +45,7 @@ import InboxIcon from '@material-ui/icons/MoveToInbox';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 
+import MyPieChart from './MyPieChart';
 import { AuthContext } from '../AuthContext'
 import agent from '../agent'
 
@@ -87,22 +88,6 @@ const styles = (theme) => ({
   },
 });
 
-const sign = [
-  { type: '下欠上', value: false },
-  { type: '上欠下', value: true }
-]
-
-const EVENT_TYPE = {
-  PERSONAL: {
-    label: '個人',
-    color: 'primary'
-  },
-  GROUP: {
-    label: '群組',
-    color: 'secondary'
-  },
-}
-
 function Group(props) {
   const { classes } = props;
   const [memberList, setMemberList] = useState([])
@@ -117,6 +102,9 @@ function Group(props) {
   const [comment, setComment] = useState('');
   const [openAddUserDialog, setOpenAddUserDialog] = useState(false);
   const [addUser, setAddUser] = useState('');
+  const [timeChartData, setTimeChartData] = useState([]);
+  const [amountChartData, setAmountChartData] = useState([]);
+
   const history = useHistory();
   const { currentUser } = useContext(AuthContext);
   const { groupName, id } = useParams();
@@ -216,7 +204,7 @@ function Group(props) {
   }
 
   const getGroupInfo = async () => {
-    if (!currentUser.username) history.push('/home')
+    if (!currentUser.username) return
     try {
       const result = await agent.Group.getGroupEvent(currentUser.username, id);
       if (!result.data.success) {
@@ -245,6 +233,134 @@ function Group(props) {
       else if (ele.debtor === currentUser.username) total -= ele.amount
     })
     setSum(total)
+  }, [eventList])
+
+  useEffect(() => {
+    if (!eventList) return;
+    const newData = [...eventList, { time: new Date().toISOString() }]
+    const userTimeData = {};
+    const userAmountData = {};
+    const userLastDate = {};
+    const balance = {};
+    memberList.forEach(member => {
+      userTimeData[`${member}`] = 0;
+      userAmountData[`${member}`] = 0;
+      balance[`${member}`] = 0;
+      userLastDate[`${member}`] = 0;
+    })
+    newData.forEach((ele, idx) => {
+      if (ele.amount) {
+        balance[`${ele.creditor}`] += ele.amount;
+        balance[`${ele.debtor}`] -= ele.amount;
+        // amount chart data
+        if (balance[`${ele.debtor}`] < 0 && userAmountData[`${ele.debtor}`] < -balance[`${ele.debtor}`]) {
+          userAmountData[`${ele.debtor}`] = -balance[`${ele.debtor}`];
+        }
+
+        // time chart data
+        if (balance[`${ele.creditor}`] > 0) {
+          if (userLastDate[`${ele.creditor}`] !== 0) {
+            userTimeData[`${ele.creditor}`] += new Date(ele.time) - userLastDate[`${ele.creditor}`];
+            userLastDate[`${ele.creditor}`] = 0;
+          }
+        }
+        else if (balance[`${ele.creditor}`] < 0) {
+          if (userLastDate[`${ele.creditor}`] === 0) {
+            userLastDate[`${ele.creditor}`] = new Date(ele.time);
+          }
+        }
+        if (balance[`${ele.debtor}`] > 0) {
+          if (userLastDate[`${ele.debtor}`] !== 0) {
+            userTimeData[`${ele.debtor}`] += new Date(ele.time) - userLastDate[`${ele.debtor}`];
+            userLastDate[`${ele.debtor}`] = 0;
+          }
+        }
+        else if (balance[`${ele.debtor}`] < 0) {
+          if (userLastDate[`${ele.debtor}`] === 0) {
+            userLastDate[`${ele.debtor}`] = new Date(ele.time);
+          }
+        }
+      }
+      else {
+        memberList.forEach(member => {
+          if (userLastDate[`${member}`] !== 0) {
+            userTimeData[`${member}`] += new Date(ele.time) - userLastDate[`${member}`];
+          }
+        })
+      }
+    })
+
+    // amount chart data
+    const finalAmountData = [];
+
+    for (const [key, value] of Object.entries(userAmountData)) {
+      if (value !== 0) {
+        finalAmountData.push({
+          title: key,
+          value: value,
+          unit: '元'
+        });
+      }
+    }
+    setAmountChartData(finalAmountData);
+
+    // time chart data
+    const finalTimeData = [];
+    const dayOffset = 24 * 60 * 60 * 1000;
+    const hourOffset = 60 * 60 * 1000;
+    const minOffset = 60 * 1000;
+    const secOffset = 1000;
+    console.log('time', userTimeData)
+    if (Object.values(userTimeData).some(value => value >= dayOffset / 2)) {
+      for (const [key, value] of Object.entries(userTimeData)) {
+        let roundedValue = Math.round(value / dayOffset, -1);
+        if (roundedValue !== 0) {
+          finalTimeData.push({
+            title: key,
+            value: roundedValue,
+            unit: '天'
+          });
+        }
+      }
+    }
+    else if (Object.values(userTimeData).some(value => value >= hourOffset / 2)) {
+      for (const [key, value] of Object.entries(userTimeData)) {
+        let roundedValue = Math.round(value / hourOffset, -1);
+        if (roundedValue !== 0) {
+          finalTimeData.push({
+            title: key,
+            value: roundedValue,
+            unit: '小時'
+          });
+        }
+      }
+    }
+    else if (Object.values(userTimeData).some(value => value >= minOffset / 2)) {
+      for (const [key, value] of Object.entries(userTimeData)) {
+        let roundedValue = Math.round(value / minOffset, -1);
+        if (roundedValue !== 0) {
+          finalTimeData.push({
+            title: key,
+            value: roundedValue,
+            unit: '分鐘'
+          });
+        }
+      }
+    }
+    else {
+      for (const [key, value] of Object.entries(userTimeData)) {
+        let roundedValue = Math.round(value / secOffset, -1);
+        if (roundedValue !== 0) {
+          finalTimeData.push({
+            title: key,
+            value: roundedValue,
+            unit: '秒鐘'
+          });
+        }
+      }
+    }
+    setTimeChartData(finalTimeData);
+
   }, [eventList])
 
   return (
@@ -368,6 +484,31 @@ function Group(props) {
                 ))}
               </TableBody>
             </Table>
+          </Paper>
+        </Grid>
+      </Grid>
+
+      <Grid container spacing={3} className={classes.paper}>
+        <Grid item xs>
+          <Paper className={classes.paper} color="primary">
+            <Typography className={classes.typography}>
+              統計
+            </Typography>
+            <Divider className={classes.divider} />
+            <Grid container>
+              <Grid item xs={6}>
+                <Box pt={3}>
+                  <Typography variant="h5" align="center">欠債時間長度</Typography>
+                  <MyPieChart data={timeChartData} />
+                </Box>
+              </Grid>
+              <Grid item xs={6}>
+                <Box pt={3}>
+                  <Typography variant="h5" align="center">最高欠債金額</Typography>
+                  <MyPieChart data={amountChartData} />
+                </Box>
+              </Grid>
+            </Grid>
           </Paper>
         </Grid>
       </Grid>
