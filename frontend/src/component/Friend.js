@@ -408,7 +408,7 @@ function Friend(props) {
                 <Typography>
                   {`合計：${(sum < 0) ? '' : '+'}${sum}`}
                 </Typography>&nbsp;&nbsp;
-                {sum !== 0 &&
+                {/* {sum !== 0 &&
                   <Button
                     size="small"
                     variant="outlined"
@@ -422,7 +422,7 @@ function Friend(props) {
                   >
                     {sum < 0 ? '還清' : '結清'}
                   </Button>
-                }
+                } */}
               </Box>
             </Box>
           </Paper>
