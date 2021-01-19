@@ -396,6 +396,7 @@ function Friend(props) {
 
   return (
     <>
+      {/* friend name & total */}
       <Grid container spacing={3} className={classes.paper}>
         <Grid item xs>
           <Paper className={classes.blockPaper} color="primary">
@@ -429,6 +430,7 @@ function Friend(props) {
         </Grid>
       </Grid>
 
+      {/* history & chart */}
       <Grid container spacing={3} className={classes.paper}>
         <Grid item xs>
           <Paper className={classes.paper} color="primary">
@@ -446,7 +448,6 @@ function Friend(props) {
                     label={tab.label}
                   />)
               }
-
             </Tabs>
             <Divider className={classes.divider} />
             {
@@ -536,6 +537,7 @@ function Friend(props) {
         </Grid>
       </Grid>
 
+      {/* history list menu */}
       <Menu
         id="account-menu"
         anchorEl={anchorEl}
@@ -556,6 +558,7 @@ function Friend(props) {
         <MenuItem onClick={handlePayBackClick}>{payBackSign ? "還錢" : "收錢"}</MenuItem>
       </Menu>
 
+      {/* new event dialog */}
       <Dialog
         open={openFriendDialog}
         onClose={handleFriendClose}
@@ -618,6 +621,7 @@ function Friend(props) {
         </DialogActions>
       </Dialog>
 
+      {/* edit event dialog */}
       <Dialog
         open={openFriendEditDialog}
         onClose={handleFriendEditClose}
@@ -658,6 +662,7 @@ function Friend(props) {
         </DialogActions>
       </Dialog>
 
+      {/* pay back event dialog */}
       <Dialog
         open={openFriendPayBackDialog}
         onClose={handleFriendPayBackClose}

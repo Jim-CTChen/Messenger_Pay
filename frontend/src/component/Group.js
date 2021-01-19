@@ -487,6 +487,7 @@ function Group(props) {
 
   return (
     <>
+      {/* group name & total */}
       <Grid container spacing={3} className={classes.paper}>
         <Grid item xs>
           <Paper className={classes.blockPaper} color="primary">
@@ -503,6 +504,7 @@ function Group(props) {
         </Grid>
       </Grid>
 
+      {/* group member list */}
       <Grid container spacing={3} className={classes.paper}>
         <Grid item xs>
           <Paper className={classes.blockPaper} color="primary">
@@ -539,6 +541,7 @@ function Group(props) {
         </Grid>
       </Grid>
 
+      {/* history & chart */}
       <Grid container spacing={3} className={classes.paper}>
         <Grid item xs>
           <Paper className={classes.paper} color="primary">
@@ -675,6 +678,7 @@ function Group(props) {
         <MenuItem onClick={handlePayBackClick}>{currentDebtor === currentUser.username ? "還錢" : "收錢"}</MenuItem>
       </Menu>
 
+      {/* new event dialog */}
       <Dialog
         open={openDialog}
         onClose={handleClose}
@@ -757,6 +761,7 @@ function Group(props) {
         </DialogActions>
       </Dialog>
 
+      {/* add member to group */}
       <Dialog
         open={openAddUserDialog}
         onClose={handleAddUserClose}
@@ -787,6 +792,7 @@ function Group(props) {
         </DialogActions>
       </Dialog>
 
+      {/* edit event dialog */}
       <Dialog
         open={openEditDialog}
         onClose={handleEditClose}
@@ -827,6 +833,7 @@ function Group(props) {
         </DialogActions>
       </Dialog>
 
+      {/* pay back event dialog */}
       <Dialog
         open={openPayBackDialog}
         onClose={handlePayBackClose}
