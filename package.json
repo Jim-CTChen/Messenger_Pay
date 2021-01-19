@@ -6,6 +6,6 @@
   "author": "Jim-CTChen <b07901036@ntu.edu.tw>",
   "license": "MIT",
   "scripts": {
-    "start": "cd backend && yarn server",
+    "start": "cd backend && yarn server"
   }
 }
