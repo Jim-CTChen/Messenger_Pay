@@ -1,11 +1,18 @@
 const requirement = {
+  auth: {
+    GET: {
+      '/': []
+    },
+    POST: {
+      '/login': ['username', 'password'],
+    }
+  },
   user: { // /api/user
     GET: {
       '/': ['username'],
     },
     POST: {
       '/': ['username', 'password', 'name'],
-      '/login': ['username', 'password'],
     }
   },
   event: { // /api/event

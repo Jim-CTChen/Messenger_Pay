@@ -39,7 +39,7 @@ function Login(props) {
   const [password, setPassword] = useState('');
   const [isWaiting, setIsWaiting] = useState(false);
   const [isWaitingAuth, setIsWaitingAuth] = useState(true);
-  const { currentUser, setCurrentUser } = useContext(AuthContext);
+  const { setCurrentUser } = useContext(AuthContext);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -49,7 +49,7 @@ function Login(props) {
         username: username,
         password: password
       };
-      const result = await agent.User.login(body);
+      const result = await agent.Auth.login(body);
       setIsWaiting(false);
       console.log('result', result);
       if (result.data.success) {

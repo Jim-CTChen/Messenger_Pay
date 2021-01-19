@@ -39,7 +39,6 @@ app.use((req, res, next) => {
   console.log('URL', req.method + ' ' + req.originalUrl);
   console.log('req body', req.body);
   console.log('req query', req.query);
-  console.log('token', req.headers.token)
   next();
 });
 
