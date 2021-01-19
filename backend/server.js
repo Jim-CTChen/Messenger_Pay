@@ -47,10 +47,10 @@ app.get('/', (req, res) => {
 });
 
 
-import authRouter from './routes/auth';
-import userRouter from './routes/user';
-import eventRouter from './routes/event';
-import groupRouter from './routes/group';
+const authRouter = require('./routes/auth');
+const userRouter = require('./routes/user');
+const eventRouter = require('./routes/event');
+const groupRouter = require('./routes/group');
 
 app.use('/api/auth', authRouter);
 app.use('/api/user', userRouter);

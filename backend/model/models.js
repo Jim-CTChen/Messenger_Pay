@@ -1,3 +1,7 @@
-export { User } from './user';
-export { Group } from './group';
-export { Event } from './event';
+const { User } = require('./user');
+const { Group } = require('./group');
+const { Event } = require('./event');
+
+module.exports = {
+  User, Group, Event
+};

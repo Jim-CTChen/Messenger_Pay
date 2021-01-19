@@ -9,4 +9,4 @@ const handleMissing = (missingList, obj) => {
   else return missing.join(', ').concat(' missing!')
 }
 
-export default handleMissing
+module.exports = handleMissing
