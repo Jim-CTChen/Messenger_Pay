@@ -2,6 +2,6 @@ const EVENT_TYPE = [
   'PERSONAL', 'GROUP'
 ]
 
-export {
+module.exports = {
   EVENT_TYPE
 }
