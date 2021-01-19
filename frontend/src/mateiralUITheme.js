@@ -14,6 +14,11 @@ let theme = createMuiTheme({
       fontSize: 26,
       letterSpacing: 0.5,
     },
+    h4: {
+      fontWeight: 500,
+      fontSize: 32,
+      letterSpacing: 0.5,
+    },
     fontSize: 18,
     // fontFamily: [
     //   '微軟正黑體',

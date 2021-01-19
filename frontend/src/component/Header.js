@@ -8,11 +8,8 @@ import Grid from '@material-ui/core/Grid';
 import HelpIcon from '@material-ui/icons/Help';
 import Hidden from '@material-ui/core/Hidden';
 import IconButton from '@material-ui/core/IconButton';
-import Link from '@material-ui/core/Link';
-import MenuIcon from '@material-ui/icons/Menu';
 import NotificationsIcon from '@material-ui/icons/Notifications';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
+import Box from '@material-ui/core/Box';
 import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
@@ -25,11 +22,13 @@ import { AuthContext } from '../AuthContext'
 const lightColor = 'rgba(255, 255, 255, 0.7)';
 
 const styles = (theme) => ({
+  title: {
+    cursor: 'pointer'
+  },
   appBar: {
-    zIndex: 0,
+    zIndex: 9999,
     padding: 8,
     display: 'flex'
-
   },
   menuButton: {
     marginLeft: -theme.spacing(1),
@@ -63,7 +62,7 @@ function Header(props) {
 
   return (
     <>
-      <Hidden smUp>
+      {/* <Hidden smUp>
         <AppBar color="primary" position="sticky" elevation={0} className={classes.appBar}>
           <Toolbar>
             <Grid container spacing={1} alignItems="center">
@@ -83,73 +82,77 @@ function Header(props) {
             </Grid>
           </Toolbar>
         </AppBar>
-      </Hidden>
-      <Hidden xsDown>
-        <AppBar
-          component="div"
-          className={classes.appBar}
-          color="primary"
-          position="static"
-          elevation={0}
-        >
-          <Toolbar>
-            <Grid container alignItems="center" spacing={1}>
-              <Grid item xs>
-                <Typography color="inherit" variant="h5" component="h1">
-                  Messenger Pay
-                </Typography>
-              </Grid>
-              <Grid item>
-                <Button className={classes.button} variant="outlined" color="inherit" size="small">
-                  Web setup
-                </Button>
-              </Grid>
-              <Grid item>
-                <Tooltip title="Help">
-                  <IconButton color="inherit" onClick={e => setAnchorEl(e.currentTarget)}>
-                    <HelpIcon />
-                  </IconButton>
-                </Tooltip>
-              </Grid>
-              <Grid item>
-                <Tooltip title="Alerts • No alerts">
-                  <IconButton color="inherit">
-                    <NotificationsIcon />
-                  </IconButton>
-                </Tooltip>
-              </Grid>
-              <Grid item>
-                <IconButton color="inherit" className={classes.iconButtonAvatar}>
-                  <Avatar
-                    src="/static/images/avatar/1.jpg"
-                    alt={currentUser.name}
-                    onClick={e => setAnchorEl(e.currentTarget)}
-                  />
+      </Hidden> */}
+      {/* <Hidden xsDown> */}
+      <AppBar
+        component="div"
+        className={classes.appBar}
+        color="primary"
+        position="sticky"
+        elevation={2}
+      >
+        <Toolbar>
+          <Grid
+            container
+            alignItems="center"
+            spacing={1}
+            style={{ justifyContent: 'space-between' }}
+          >
+            <Box pl={3}>
+              <Typography
+                color="inherit"
+                variant="h4"
+                className={classes.title}
+                onClick={() => history.push('/home')}
+              >
+                Messenger Pay
+              </Typography>
+            </Box>
+            <Box>
+              <Button className={classes.button} variant="outlined" color="inherit" size="small">
+                Web setup
+              </Button>
+              <Tooltip title="Help">
+                <IconButton color="inherit" onClick={e => setAnchorEl(e.currentTarget)}>
+                  <HelpIcon />
                 </IconButton>
-              </Grid>
-            </Grid>
-          </Toolbar>
-        </AppBar>
-        <Menu
-          id="account-menu"
-          anchorEl={anchorEl}
-          open={Boolean(anchorEl)}
-          onClose={() => setAnchorEl(null)}
-          keepMounted
-          getContentAnchorEl={null}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'center'
-          }}
-          transformOrigin={{
-            vertical: 'top',
-            horizontal: 'center'
-          }}
-        >
-          <MenuItem onClick={() => setAnchorEl(null)}>Account</MenuItem>
-          <MenuItem onClick={handleLogout}>Logout</MenuItem>
-        </Menu>
-      </Hidden>
+              </Tooltip>
+              <Tooltip title="Alerts • No alerts">
+                <IconButton color="inherit">
+                  <NotificationsIcon />
+                </IconButton>
+              </Tooltip>
+              <IconButton color="inherit" className={classes.iconButtonAvatar}>
+                <Avatar
+                  src="/static/images/avatar/1.jpg"
+                  alt={currentUser.name}
+                  onClick={e => setAnchorEl(e.currentTarget)}
+                />
+              </IconButton>
+            </Box>
+          </Grid>
+        </Toolbar>
+      </AppBar>
+      <Menu
+        id="account-menu"
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={() => setAnchorEl(null)}
+        keepMounted
+        getContentAnchorEl={null}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'center'
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'center'
+        }}
+      >
+        <MenuItem onClick={() => setAnchorEl(null)}>Account</MenuItem>
+        <MenuItem onClick={handleLogout}>Logout</MenuItem>
+      </Menu>
+      {/* </Hidden> */}
     </>
   );
 }

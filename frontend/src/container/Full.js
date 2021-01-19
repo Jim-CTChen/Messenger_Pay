@@ -66,7 +66,7 @@ function Full(props) {
     <ThemeProvider theme={theme}>
       <div className={classes.root}>
         <CssBaseline />
-        <nav className={classes.drawer}>
+        {/* <nav className={classes.drawer}>
           <Hidden smUp implementation="js">
             <Sidebar
               PaperProps={{ style: { width: drawerWidth } }}
@@ -78,7 +78,7 @@ function Full(props) {
           <Hidden xsDown implementation="css">
             <Sidebar PaperProps={{ style: { width: drawerWidth } }} />
           </Hidden>
-        </nav>
+        </nav> */}
         <div className={classes.app}>
           <Header onDrawerToggle={handleDrawerToggle} />
           <main className={classes.main}>
