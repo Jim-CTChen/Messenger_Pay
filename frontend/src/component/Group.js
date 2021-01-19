@@ -16,6 +16,7 @@ import HomeIcon from '@material-ui/icons/Home';
 import AccessTimeIcon from '@material-ui/icons/AccessTime';
 import DeleteIcon from '@material-ui/icons/Delete';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
+import SortByAlphaIcon from '@material-ui/icons/SortByAlpha';
 import AttachMoneyIcon from '@material-ui/icons/AttachMoney';
 import Button from '@material-ui/core/Button'
 import Typography from '@material-ui/core/Typography'
@@ -54,6 +55,7 @@ import MyPieChart from './usage/MyPieChart';
 import User from './usage/User';
 import { AuthContext } from '../AuthContext'
 import agent from '../agent'
+import constants from '../constants/index'
 
 const timeAgo = new TimeAgo()
 
@@ -94,6 +96,8 @@ const styles = (theme) => ({
   },
 });
 
+const DISPLAY_MODE = constants.DISPLAY_MODE;
+
 const TAB_VALUE = [
   { key: 0, label: '歷史紀錄' },
   { key: 1, label: '統計' }
@@ -104,7 +108,10 @@ function Group(props) {
 
   const [tabValue, setTabValue] = useState(0);
   const [memberList, setMemberList] = useState([]);
+  const [displayMode, setDisplayMode] = useState(DISPLAY_MODE[0]);
   const [eventList, setEventList] = useState([]);
+  const [sortedList, setSortedList] = useState([])
+
   const [memberBalance, setMemberBalance] = useState([])
   const [memberBalanceForUser, setMemberBalanceForUser] = useState([])
   const [timeFromNow, setTimeFromNow] = useState(false);
@@ -123,6 +130,7 @@ function Group(props) {
   const [removeUser, setRemoveUser] = useState('');
   const [timeChartData, setTimeChartData] = useState([]);
   const [amountChartData, setAmountChartData] = useState([]);
+
   const [editAmount, setEditAmount] = useState('');
   const [editComment, setEditComment] = useState('');
   const [payBackAmount, setPayBackAmount] = useState(0);
@@ -131,6 +139,7 @@ function Group(props) {
   const [currentDebtor, setCurrentDebtor] = useState('');
 
   const [anchorEl, setAnchorEl] = useState(null);
+  const [anchorEl2, setAnchorEl2] = useState(null);
   const [currentEventId, setCurrentEventId] = useState('');
 
   const history = useHistory();
@@ -143,38 +152,6 @@ function Group(props) {
 
   const handleClose = () => {
     setOpenDialog(false)
-  };
-
-  const handleGroupSubmit = async () => {
-    const payload = {
-      creditor: creditor,
-      debtor: debtor,
-      amount: Number(amount),
-      description: comment,
-      type: 'GROUP',
-      groupId: id
-    }
-    try {
-      const result = await agent.Event.createEvent(payload);
-      if (!result.data.success) {
-        alert(result.data.error);
-      }
-      else {
-        setOpenDialog(false);
-        setCreditor('');
-        setDebtor('');
-        setAmount('');
-        setComment('');
-        getGroupInfo();
-      }
-    } catch (error) {
-      setOpenDialog(false);
-      setCreditor('');
-      setDebtor('');
-      setAmount('');
-      setComment('');
-      alert(error)
-    }
   };
 
   const handleAddUserClose = () => {
@@ -232,6 +209,69 @@ function Group(props) {
       alert(error)
     }
   }
+
+  const handleSort = (sortMode) => {
+    setAnchorEl2(null)
+    if (sortMode === DISPLAY_MODE[0]) {
+      setDisplayMode(DISPLAY_MODE[0])
+    }
+    else if (sortMode === DISPLAY_MODE[1]) {
+      setDisplayMode(DISPLAY_MODE[1])
+      const sortList = eventList.concat()
+      sortList.sort(function (a, b) {
+        return a.amount - b.amount
+      })
+      setSortedList(sortList)
+    }
+    else if (sortMode === DISPLAY_MODE[2]) {
+      setDisplayMode(DISPLAY_MODE[2])
+      const sortList = eventList.concat()
+      sortList.sort(function (a, b) {
+        return b.amount - a.amount
+      })
+      setSortedList(sortList)
+    }
+    else if (sortMode === DISPLAY_MODE[3]) {
+      setDisplayMode(DISPLAY_MODE[3])
+      const sortList = eventList.concat()
+      sortList.sort(function (a, b) {
+        return new Date(b.time) - new Date(a.time);
+      })
+      setSortedList(sortList)
+    }
+  }
+
+  const handleGroupSubmit = async () => {
+    const payload = {
+      creditor: creditor,
+      debtor: debtor,
+      amount: Number(amount),
+      description: comment,
+      type: 'GROUP',
+      groupId: id
+    }
+    try {
+      const result = await agent.Event.createEvent(payload);
+      if (!result.data.success) {
+        alert(result.data.error);
+      }
+      else {
+        setOpenDialog(false);
+        setCreditor('');
+        setDebtor('');
+        setAmount('');
+        setComment('');
+        getGroupInfo();
+      }
+    } catch (error) {
+      setOpenDialog(false);
+      setCreditor('');
+      setDebtor('');
+      setAmount('');
+      setComment('');
+      alert(error)
+    }
+  };
 
   const getGroupInfo = async () => {
     if (!currentUser.username) return
@@ -600,6 +640,9 @@ function Group(props) {
               tabValue === 0 ?
                 <>
                   <Box mx={2} mt={1} align='right'>
+                    <IconButton onClick={(e) => setAnchorEl2(e.currentTarget)}>
+                      <SortByAlphaIcon />
+                    </IconButton>
                     <IconButton onClick={() => setTimeFromNow(!timeFromNow)}>
                       <AccessTimeIcon />
                     </IconButton>
@@ -631,41 +674,78 @@ function Group(props) {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {eventList.map((event, id) => (
-                        <TableRow key={id}>
-                          <TableCell align="center">
-                            <User user={event.creditor} onClick={() => {
-                              if (event.creditor == currentUser.username) history.push('/account');
-                              else history.push(`/friend/${event.creditor}`);
-                            }} />
-                          </TableCell>
-                          <TableCell align="center">
-                            <User user={event.debtor} onClick={() => {
-                              if (event.debtor == currentUser.username) history.push('/account');
-                              else history.push(`/friend/${event.debtor}`);
-                            }} />
-                          </TableCell>
-                          <TableCell align="center">{event.description}</TableCell>
-                          <TableCell align="center" className={classes.green}>
-                            {event.amount}
-                          </TableCell>
-                          <TableCell align="center">
-                            {timeFromNow ?
-                              timeAgo.format(new Date(event.time)) :
-                              dayjs(event.time).format('YYYY/MM/DD HH:mm')
-                            }
-                          </TableCell>
-                          <TableCell align="center">
-                            {(currentUser.username === event.creditor |
-                              currentUser.username === event.debtor) ?
-                              <IconButton onClick={e =>
-                                handleEventMoreActionClick(e, event.id, event.creditor, event.debtor, event.amount, event.description)}
-                              >
-                                <MoreVertIcon />
-                              </IconButton> : <></>
-                            }
-                          </TableCell>
-                        </TableRow>
+                      { displayMode === 'default' ?
+                        eventList.map((event, id) => (
+                          <TableRow key={id}>
+                            <TableCell align="center">
+                              <User user={event.creditor} onClick={() => {
+                                if (event.creditor == currentUser.username) history.push('/account');
+                                else history.push(`/friend/${event.creditor}`);
+                              }} />
+                            </TableCell>
+                            <TableCell align="center">
+                              <User user={event.debtor} onClick={() => {
+                                if (event.debtor == currentUser.username) history.push('/account');
+                                else history.push(`/friend/${event.debtor}`);
+                              }} />
+                            </TableCell>
+                            <TableCell align="center">{event.description}</TableCell>
+                            <TableCell align="center" className={classes.green}>
+                              {event.amount}
+                            </TableCell>
+                            <TableCell align="center">
+                              {timeFromNow ?
+                                timeAgo.format(new Date(event.time)) :
+                                dayjs(event.time).format('YYYY/MM/DD HH:mm')
+                              }
+                            </TableCell>
+                            <TableCell align="center">
+                              {(currentUser.username === event.creditor |
+                                currentUser.username === event.debtor) ?
+                                <IconButton onClick={e =>
+                                  handleEventMoreActionClick(e, event.id, event.creditor, event.debtor, event.amount, event.description)}
+                                >
+                                  <MoreVertIcon />
+                                </IconButton> : <></>
+                              }
+                            </TableCell>
+                          </TableRow>
+                        )) :
+                        sortedList.map((event, id) => (
+                          <TableRow key={id}>
+                            <TableCell align="center">
+                              <User user={event.creditor} onClick={() => {
+                                if (event.creditor == currentUser.username) history.push('/account');
+                                else history.push(`/friend/${event.creditor}`);
+                              }} />
+                            </TableCell>
+                            <TableCell align="center">
+                              <User user={event.debtor} onClick={() => {
+                                if (event.debtor == currentUser.username) history.push('/account');
+                                else history.push(`/friend/${event.debtor}`);
+                              }} />
+                            </TableCell>
+                            <TableCell align="center">{event.description}</TableCell>
+                            <TableCell align="center" className={classes.green}>
+                              {event.amount}
+                            </TableCell>
+                            <TableCell align="center">
+                              {timeFromNow ?
+                                timeAgo.format(new Date(event.time)) :
+                                dayjs(event.time).format('YYYY/MM/DD HH:mm')
+                              }
+                            </TableCell>
+                            <TableCell align="center">
+                              {(currentUser.username === event.creditor |
+                                currentUser.username === event.debtor) ?
+                                <IconButton onClick={e =>
+                                  handleEventMoreActionClick(e, event.id, event.creditor, event.debtor, event.amount, event.description)}
+                                >
+                                  <MoreVertIcon />
+                                </IconButton> : <></>
+                              }
+                            </TableCell>
+                          </TableRow>
                       ))}
                     </TableBody>
                   </Table>
@@ -692,6 +772,30 @@ function Group(props) {
         </Grid>
       </Grid>
 
+      {/* sort list menu */}
+      <Menu
+        id="sort-list-menu"
+        anchorEl={anchorEl2}
+        open={Boolean(anchorEl2)}
+        onClose={() => setAnchorEl2(null)}
+        keepMounted
+        getContentAnchorEl={null}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'center'
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'center'
+        }}
+      >
+        <MenuItem onClick={() => handleSort(DISPLAY_MODE[0])}>時間最早(預設)</MenuItem>
+        <MenuItem onClick={() => handleSort(DISPLAY_MODE[3])}>時間最新</MenuItem>
+        <MenuItem onClick={() => handleSort(DISPLAY_MODE[1])}>金額由小到大</MenuItem>
+        <MenuItem onClick={() => handleSort(DISPLAY_MODE[2])}>金額由大到小</MenuItem>
+      </Menu>
+
+      {/* history list menu */}
       <Menu
         id="account-menu"
         anchorEl={anchorEl}

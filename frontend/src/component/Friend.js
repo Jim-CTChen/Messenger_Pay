@@ -15,6 +15,7 @@ import AddIcon from '@material-ui/icons/Add';
 import HomeIcon from '@material-ui/icons/Home';
 import AccessTimeIcon from '@material-ui/icons/AccessTime';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
+import SortByAlphaIcon from '@material-ui/icons/SortByAlpha';
 import Button from '@material-ui/core/Button'
 import Typography from '@material-ui/core/Typography'
 import { Icon } from '@material-ui/core';
@@ -90,6 +91,7 @@ const sign = [
 ]
 
 const EVENT_TYPE = constants.EVENT_TYPE;
+const DISPLAY_MODE = constants.DISPLAY_MODE;
 
 const TAB_VALUE = [
   { key: 0, label: '歷史紀錄' },
@@ -100,7 +102,10 @@ function Friend(props) {
   const { classes } = props;
 
   const [tabValue, setTabValue] = useState(0);
+  const [displayMode, setDisplayMode] = useState(DISPLAY_MODE[0]);
   const [eventList, setEventList] = useState([])
+  const [sortedList, setSortedList] = useState([])
+
   const [timeFromNow, setTimeFromNow] = useState(false)
   const [sum, setSum] = useState(0);
   const [openFriendDialog, setOpenFriendDialog] = useState(false);
@@ -120,10 +125,42 @@ function Friend(props) {
   const [payBackComment, setPayBackComment] = useState('')
 
   const [anchorEl, setAnchorEl] = useState(null);
+  const [anchorEl2, setAnchorEl2] = useState(null);
   const [currentEventId, setCurrentEventId] = useState('');
   const history = useHistory();
   const { currentUser } = useContext(AuthContext);
   const { friend } = useParams();
+
+  const handleSort = (sortMode) => {
+    setAnchorEl2(null)
+    if (sortMode === DISPLAY_MODE[0]) {
+      setDisplayMode(DISPLAY_MODE[0])
+    }
+    else if (sortMode === DISPLAY_MODE[1]) {
+      setDisplayMode(DISPLAY_MODE[1])
+      const sortList = eventList.concat()
+      sortList.sort(function (a, b) {
+        return a.amount - b.amount
+      })
+      setSortedList(sortList)
+    }
+    else if (sortMode === DISPLAY_MODE[2]) {
+      setDisplayMode(DISPLAY_MODE[2])
+      const sortList = eventList.concat()
+      sortList.sort(function (a, b) {
+        return b.amount - a.amount
+      })
+      setSortedList(sortList)
+    }
+    else if (sortMode === DISPLAY_MODE[3]) {
+      setDisplayMode(DISPLAY_MODE[3])
+      const sortList = eventList.concat()
+      sortList.sort(function (a, b) {
+        return new Date(b.time) - new Date(a.time);
+      })
+      setSortedList(sortList)
+    }
+  }
 
   const handleFriendClose = () => {
     setOpenFriendDialog(false)
@@ -439,6 +476,9 @@ function Friend(props) {
               tabValue === 0 ?
                 <>
                   <Box mx={2} mt={1} align='right'>
+                    <IconButton onClick={(e) => setAnchorEl2(e.currentTarget)}>
+                      <SortByAlphaIcon />
+                    </IconButton>
                     <IconButton onClick={() => setTimeFromNow(!timeFromNow)}>
                       <AccessTimeIcon />
                     </IconButton>
@@ -468,33 +508,68 @@ function Friend(props) {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {eventList.map((event, id) => (
-                        <TableRow key={id}>
-                          <TableCell align="center">
-                            <Chip
-                              color={EVENT_TYPE[event.type].color}
-                              label={EVENT_TYPE[event.type].label}
-                              variant="outlined"
-                            />
-                          </TableCell>
-                          <TableCell align="center">{event.description}</TableCell>
-                          <TableCell align="center" className={(event.amount < 0) ? classes.red : classes.green}>
-                            {(event.amount < 0) ? event.amount : `+${event.amount}`}
-                          </TableCell>
-                          <TableCell align="center">
-                            {timeFromNow ?
-                              timeAgo.format(new Date(event.time)) :
-                              dayjs(event.time).format('YYYY/MM/DD HH:mm')
-                            }
-                          </TableCell>
-                          <TableCell align="center">
-                            <IconButton onClick={e =>
-                              handleEventMoreActionClick(e, event.id, event.amount, event.description)}
-                            >
-                              <MoreVertIcon />
-                            </IconButton>
-                          </TableCell>
-                        </TableRow>
+                      { displayMode === 'default' ? 
+                        eventList.map((event, id) => (
+                          <TableRow key={id}>
+                            <TableCell align="center">
+                              <Chip
+                                color={EVENT_TYPE[event.type].color}
+                                label={EVENT_TYPE[event.type].label}
+                                variant="outlined"
+                              />
+                            </TableCell>
+                            <TableCell align="center">{event.description}</TableCell>
+                            <TableCell align="center" className={(event.amount < 0) ? classes.red : classes.green}>
+                              {(event.amount < 0) ? event.amount : `+${event.amount}`}
+                            </TableCell>
+                            <TableCell align="center">
+                              {timeFromNow ?
+                                timeAgo.format(new Date(event.time)) :
+                                dayjs(event.time).format('YYYY/MM/DD HH:mm')
+                              }
+                            </TableCell>
+                            <TableCell align="center">
+                              {
+                                event.type === 'PERSONAL' ?
+                                <IconButton onClick={e =>
+                                  handleEventMoreActionClick(e, event.id, event.amount, event.description)}
+                                >
+                                  <MoreVertIcon />
+                                </IconButton> : <></>
+                              }
+                            </TableCell>
+                          </TableRow>
+                        )) :
+                        sortedList.map((event, id) => (
+                          <TableRow key={id}>
+                            <TableCell align="center">
+                              <Chip
+                                color={EVENT_TYPE[event.type].color}
+                                label={EVENT_TYPE[event.type].label}
+                                variant="outlined"
+                              />
+                            </TableCell>
+                            <TableCell align="center">{event.description}</TableCell>
+                            <TableCell align="center" className={(event.amount < 0) ? classes.red : classes.green}>
+                              {(event.amount < 0) ? event.amount : `+${event.amount}`}
+                            </TableCell>
+                            <TableCell align="center">
+                              {timeFromNow ?
+                                timeAgo.format(new Date(event.time)) :
+                                dayjs(event.time).format('YYYY/MM/DD HH:mm')
+                              }
+                            </TableCell>
+                            <TableCell align="center">
+                              {
+                                event.type === 'PERSONAL' ?
+                                <IconButton onClick={e =>
+                                  handleEventMoreActionClick(e, event.id, event.amount, event.description)}
+                                >
+                                  <MoreVertIcon />
+                                </IconButton> : <></>
+                              }
+                            </TableCell>
+                          </TableRow>
                       ))}
                     </TableBody>
                   </Table>
@@ -521,6 +596,29 @@ function Friend(props) {
           </Paper>
         </Grid>
       </Grid>
+
+      {/* sort list menu */}
+      <Menu
+        id="sort-list-menu"
+        anchorEl={anchorEl2}
+        open={Boolean(anchorEl2)}
+        onClose={() => setAnchorEl2(null)}
+        keepMounted
+        getContentAnchorEl={null}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'center'
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'center'
+        }}
+      >
+        <MenuItem onClick={() => handleSort(DISPLAY_MODE[0])}>時間最早(預設)</MenuItem>
+        <MenuItem onClick={() => handleSort(DISPLAY_MODE[3])}>時間最新</MenuItem>
+        <MenuItem onClick={() => handleSort(DISPLAY_MODE[1])}>金額由小到大</MenuItem>
+        <MenuItem onClick={() => handleSort(DISPLAY_MODE[2])}>金額由大到小</MenuItem>
+      </Menu>
 
       {/* history list menu */}
       <Menu

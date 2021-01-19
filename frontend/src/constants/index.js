@@ -16,7 +16,12 @@ const EVENT_TYPE = {
   },
 }
 
+const DISPLAY_MODE = [
+  'default', 'amountL2H', 'amountH2L', 'timeNew2Old'
+]
+
 export default {
   COLOR_ARRAY,
-  EVENT_TYPE
+  EVENT_TYPE,
+  DISPLAY_MODE
 }
