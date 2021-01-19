@@ -10,7 +10,6 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import { withStyles } from '@material-ui/core/styles';
 import Divider from '@material-ui/core/Divider'
-import Avatar from '@material-ui/core/Avatar';
 import Box from '@material-ui/core/Box'
 import IconButton from '@material-ui/core/IconButton';
 import AddIcon from '@material-ui/icons/Add';
@@ -28,8 +27,9 @@ import MenuItem from '@material-ui/core/MenuItem';
 
 import Grid from '@material-ui/core/Grid';
 
-import { AuthContext } from '../AuthContext'
-import agent from '../agent'
+import { AuthContext } from '../AuthContext';
+import agent from '../agent';
+import User from './usage/User';
 
 const styles = (theme) => ({
   paper: {
@@ -62,7 +62,8 @@ const styles = (theme) => ({
   },
   listItem: {
     margin: '3px',
-    display: 'flex'
+    display: 'flex',
+    justifyContent: 'space-between'
   },
   box: {
     margin: '3px'
@@ -335,10 +336,8 @@ function Home(props) {
                     key={friend.username}
                     className={classes.listItem}
                   >
-                    <Avatar>{friend.username[0]}</Avatar>
-                    &nbsp;
-                    <ListItemText >{friend.username}</ListItemText>
-                    <Box display="inline" mr={10}>
+                    <User user={friend.username} />
+                    <Box display="inline" mr={3}>
                       {
                         friend.balance >= 0 ?
                           <ListItemText className={classes.green}>
@@ -357,10 +356,8 @@ function Home(props) {
                     key={group.id}
                     className={classes.listItem}
                   >
-                    <Avatar>{group.groupName[0]}</Avatar>
-                    &nbsp;
-                    <ListItemText >{group.groupName}</ListItemText>
-                    <Box display="inline" mr={10}>
+                    <User user={group.groupName} />
+                    <Box display="inline" mr={3}>
                       {
                         group.balance >= 0 ?
                           <ListItemText className={classes.green}>

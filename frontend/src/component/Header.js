@@ -1,4 +1,4 @@
-import { React, useState, useContext } from 'react';
+import { React, useState, useContext, useEffect } from 'react';
 import { useHistory } from 'react-router-dom'
 import PropTypes from 'prop-types';
 import AppBar from '@material-ui/core/AppBar';
@@ -17,7 +17,11 @@ import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem'
 import { withStyles } from '@material-ui/core/styles';
 
-import { AuthContext } from '../AuthContext'
+import constants from '../constants/index'
+import { AuthContext } from '../AuthContext';
+const seedrandom = require('seedrandom');
+
+const COLOR_ARRAY = constants.COLOR_ARRAY;
 
 const lightColor = 'rgba(255, 255, 255, 0.7)';
 
@@ -51,8 +55,16 @@ function Header(props) {
   const { classes, onDrawerToggle } = props;
 
   const [anchorEl, setAnchorEl] = useState(null);
+  const [color, setColor] = useState(COLOR_ARRAY[0]);
   const { currentUser, setCurrentUser } = useContext(AuthContext);
   const history = useHistory();
+
+  const getColor = (name) => {
+    const rng = seedrandom(name);
+    let rand = Math.round(rng() * COLOR_ARRAY.length);
+    console.log('rand', rand)
+    return COLOR_ARRAY[rand];
+  }
 
   const handleLogout = () => {
     setAnchorEl(null)
@@ -60,6 +72,10 @@ function Header(props) {
     window.localStorage.removeItem('jwt');
     history.replace('/login')
   }
+
+  useEffect(() => {
+    setColor(getColor(currentUser.username));
+  }, [currentUser.username])
 
   return (
     <>
@@ -125,10 +141,12 @@ function Header(props) {
               </Tooltip>
               <IconButton color="inherit" className={classes.iconButtonAvatar}>
                 <Avatar
-                  src="/static/images/avatar/1.jpg"
-                  alt={currentUser.name}
+                  style={{ background: color }}
+                  alt={currentUser.username}
                   onClick={e => setAnchorEl(e.currentTarget)}
-                />
+                >
+                  {currentUser.username[0]}
+                </Avatar>
               </IconButton>
             </Box>
           </Grid>
@@ -150,7 +168,12 @@ function Header(props) {
           horizontal: 'center'
         }}
       >
-        <MenuItem onClick={() => setAnchorEl(null)}>Account</MenuItem>
+        <MenuItem onClick={() => {
+          setAnchorEl(null);
+          history.push('/account');
+        }}>
+          Account
+        </MenuItem>
         <MenuItem onClick={handleLogout}>Logout</MenuItem>
       </Menu>
       {/* </Hidden> */}

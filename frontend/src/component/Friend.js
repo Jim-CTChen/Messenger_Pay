@@ -9,7 +9,6 @@ import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import { withStyles } from '@material-ui/core/styles';
 import Divider from '@material-ui/core/Divider'
-import Avatar from '@material-ui/core/Avatar';
 import Box from '@material-ui/core/Box'
 import IconButton from '@material-ui/core/IconButton';
 import AddIcon from '@material-ui/icons/Add';
@@ -39,12 +38,14 @@ import TableRow from '@material-ui/core/TableRow';
 
 import Grid from '@material-ui/core/Grid';
 
-import MyPieChart from './MyPieChart';
+import MyPieChart from './usage/MyPieChart';
+import User from './usage/User';
 import { AuthContext } from '../AuthContext'
-import agent from '../agent'
+import agent from '../agent';
+import constants from '../constants/index'
 
 TimeAgo.addDefaultLocale(zh);
-const timeAgo = new TimeAgo()
+const timeAgo = new TimeAgo();
 
 const styles = (theme) => ({
   paper: {
@@ -88,16 +89,7 @@ const sign = [
   { type: '我欠', value: true }
 ]
 
-const EVENT_TYPE = {
-  PERSONAL: {
-    label: '個人',
-    color: 'primary'
-  },
-  GROUP: {
-    label: '群組',
-    color: 'secondary'
-  },
-}
+const EVENT_TYPE = constants.EVENT_TYPE;
 
 const TAB_VALUE = [
   { key: 0, label: '歷史紀錄' },
@@ -163,10 +155,6 @@ function Friend(props) {
       alert(error)
     }
   };
-
-  const handleBackClick = () => {
-    history.goBack();
-  }
 
   const getEventInfo = async () => {
     if (!currentUser.username) return
@@ -401,10 +389,7 @@ function Friend(props) {
         <Grid item xs>
           <Paper className={classes.blockPaper} color="primary">
             <Box mx={2} style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Box style={{ display: 'flex' }}>
-                <Avatar>{friend[0]}</Avatar> &nbsp;
-                <Typography>{friend}</Typography>
-              </Box>
+              <User user={friend} />
               <Box style={{ display: 'flex' }}>
                 <Typography>
                   {`合計：${(sum < 0) ? '' : '+'}${sum}`}
@@ -460,7 +445,7 @@ function Friend(props) {
                     <IconButton onClick={() => setOpenFriendDialog(true)}>
                       <AddIcon />
                     </IconButton>
-                    <IconButton onClick={handleBackClick}>
+                    <IconButton onClick={() => history.push('/home')}>
                       <HomeIcon />
                     </IconButton>
                   </Box>

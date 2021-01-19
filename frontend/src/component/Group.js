@@ -49,7 +49,8 @@ import InboxIcon from '@material-ui/icons/MoveToInbox';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 
-import MyPieChart from './MyPieChart';
+import MyPieChart from './usage/MyPieChart';
+import User from './usage/User';
 import { AuthContext } from '../AuthContext'
 import agent from '../agent'
 
@@ -173,10 +174,6 @@ function Group(props) {
       alert(error)
     }
   };
-
-  const handleBackClick = () => {
-    history.goBack();
-  }
 
   const handleAddUserClose = () => {
     setOpenAddUserDialog(false)
@@ -493,8 +490,7 @@ function Group(props) {
           <Paper className={classes.blockPaper} color="primary">
             <Box mx={2} style={{ display: 'flex', justifyContent: 'space-between' }}>
               <Box style={{ display: 'flex' }}>
-                <Avatar>{groupName[0]}</Avatar> &nbsp;
-                <Typography>{groupName}</Typography>
+                <User user={groupName} />
               </Box>
               <Typography >
                 {`合計：${(sum < 0) ? '' : '+'}${sum}`}
@@ -521,10 +517,7 @@ function Group(props) {
                 </Box>
                 {memberList.map((user, idx) => (
                   <ListItem className={classes.listItem}>
-                    <ListItemAvatar>
-                      <Avatar>{user[0]}</Avatar>
-                    </ListItemAvatar>
-                    <ListItemText primary={user} />
+                    <User user={user} />
                     <ListItemSecondaryAction>
                       <IconButton
                         edge="end" aria-label="delete"
@@ -572,7 +565,7 @@ function Group(props) {
                     <IconButton onClick={() => setOpenDialog(true)}>
                       <AddIcon />
                     </IconButton>
-                    <IconButton onClick={handleBackClick}>
+                    <IconButton onClick={() => history.push('/home')}>
                       <HomeIcon />
                     </IconButton>
                   </Box>
@@ -600,16 +593,16 @@ function Group(props) {
                       {eventList.map((event, id) => (
                         <TableRow key={id}>
                           <TableCell align="center">
-                            <Box style={{ display: 'flex' }}>
-                              <Avatar>{event.creditor[0]}</Avatar> &nbsp;
-                        <Typography>{event.creditor}</Typography>
-                            </Box>
+                            <User user={event.creditor} onClick={() => {
+                              if (event.creditor == currentUser.username) history.push('/account');
+                              else history.push(`/friend/${event.creditor}`);
+                            }} />
                           </TableCell>
                           <TableCell align="center">
-                            <Box style={{ display: 'flex' }}>
-                              <Avatar>{event.debtor[0]}</Avatar> &nbsp;
-                        <Typography>{event.debtor}</Typography>
-                            </Box>
+                            <User user={event.debtor} onClick={() => {
+                              if (event.debtor == currentUser.username) history.push('/account');
+                              else history.push(`/friend/${event.debtor}`);
+                            }} />
                           </TableCell>
                           <TableCell align="center">{event.description}</TableCell>
                           <TableCell align="center" className={(event.amount < 0) ? classes.red : classes.green}>

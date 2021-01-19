@@ -6,6 +6,7 @@ import Group from '../component/Group'
 import Setting from '../component/Setting'
 import About from '../component/About'
 import Template from '../component/template'
+import Account from '../component/Account'
 
 export default {
   route: [
@@ -22,7 +23,8 @@ export default {
     // 其他
     { path: '/setting', name: 'setting', component: Setting },
     { path: '/about', name: 'about', component: About },
-    { path: '/template', name: 'template', component: Template }
+    { path: '/account', name: 'account', component: Account },
+    { path: '/template', name: 'template', component: Template },
   ],
   nav_items: [
     {
