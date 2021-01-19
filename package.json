@@ -1,12 +1,30 @@
 {
-  "name": "Messenger_Pay",
+  "name": "backend",
   "version": "1.0.0",
   "main": "index.js",
-  "repository": "git@github.com:Jim-CTChen/Messenger_Pay.git",
-  "author": "Jim-CTChen <b07901036@ntu.edu.tw>",
   "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": "10.x"
+  },
   "scripts": {
-    "start": "cd frontend && yarn start",
-    "server": "cd backend && yarn server"
+    "start": "node ./backend/server.js",
+    "heroku-postbuild": "cd frontend && yarn && yarn build"
+  },
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "cookie-parser": "^1.4.5",
+    "cors": "^2.8.5",
+    "dotenv-defaults": "^2.0.1",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.11.11",
+    "nodemon": "^2.0.6"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.12.10",
+    "@babel/core": "^7.12.10",
+    "@babel/node": "^7.12.10",
+    "@babel/preset-env": "^7.12.11"
   }
 }
