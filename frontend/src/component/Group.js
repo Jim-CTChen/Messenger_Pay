@@ -16,6 +16,7 @@ import HomeIcon from '@material-ui/icons/Home';
 import AccessTimeIcon from '@material-ui/icons/AccessTime';
 import DeleteIcon from '@material-ui/icons/Delete';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
+import AttachMoneyIcon from '@material-ui/icons/AttachMoney';
 import Button from '@material-ui/core/Button'
 import Typography from '@material-ui/core/Typography'
 import { Icon, useEventCallback } from '@material-ui/core';
@@ -104,6 +105,7 @@ function Group(props) {
   const [memberList, setMemberList] = useState([]);
   const [eventList, setEventList] = useState([]);
   const [memberBalance, setMemberBalance] = useState([])
+  const [memberBalanceForUser, setMemberBalanceForUser] = useState([])
   const [timeFromNow, setTimeFromNow] = useState(false);
   const [sum, setSum] = useState(0);
   const [groupMemberOpen, setGroupMemberOpen] = useState(false);
@@ -116,12 +118,12 @@ function Group(props) {
   const [comment, setComment] = useState('');
   const [openAddUserDialog, setOpenAddUserDialog] = useState(false);
   const [addUser, setAddUser] = useState('');
+  const [openRemoveUserDialog, setOpenRemoveUserDialog] = useState(false);
+  const [removeUser, setRemoveUser] = useState('');
   const [timeChartData, setTimeChartData] = useState([]);
   const [amountChartData, setAmountChartData] = useState([]);
-  const [editSign, setEditSign] = useState(false);
   const [editAmount, setEditAmount] = useState('');
   const [editComment, setEditComment] = useState('');
-  const [payBackSign, setPayBackSign] = useState(false);
   const [payBackAmount, setPayBackAmount] = useState(0);
   const [payBackComment, setPayBackComment] = useState('');
   const [currentCreditor, setCurrentCreditor] = useState('');
@@ -205,10 +207,14 @@ function Group(props) {
     }
   }
 
-  const handleRemoveUser = async (user) => {
+  const handleRemoveUserClose = () => {
+    setOpenRemoveUserDialog(false)
+  };
+
+  const handleRemoveUser = async () => {
     const payload = {
       groupId: id,
-      usernames: user
+      usernames: removeUser
     }
     try {
       const result = await agent.Group.removeUser(payload);
@@ -216,7 +222,9 @@ function Group(props) {
         alert(result.data.error);
       }
       else {
-        if (user === currentUser.username) {
+        setOpenRemoveUserDialog(false)
+        setRemoveUser('')
+        if (removeUser === currentUser.username) {
           history.replace('/home')
         }
         else {
@@ -250,12 +258,10 @@ function Group(props) {
     setCurrentEventId(id)
     setCurrentCreditor(creditor)
     setCurrentDebtor(debtor)
-    setEditSign((Number(amount) >= 0) ? false : true)
-    setEditAmount((Number(amount) >= 0) ? Number(amount) : (-1) * Number(amount))
+    setEditAmount(Number(amount))
     setEditComment(comment)
-    setPayBackSign((Number(amount) >= 0) ? false : true)
-    setPayBackAmount((Number(amount) >= 0) ? Number(amount) : (-1) * Number(amount))
-    setPayBackComment((Number(amount) >= 0) ? `收錢：${comment}` : `還錢：${comment}`)
+    setPayBackAmount(Number(amount))
+    setPayBackComment(`${debtor}還錢：${comment}`)
   }
 
   const handleEditClick = () => {
@@ -305,8 +311,8 @@ function Group(props) {
 
   const handlePayBackSubmit = async () => {
     const payload = {
-      creditor: payBackSign ? currentCreditor : currentDebtor,
-      debtor: payBackSign ? currentDebtor : currentCreditor,
+      creditor: currentDebtor,
+      debtor: currentCreditor,
       amount: Number(payBackAmount),
       description: payBackComment,
       type: 'GROUP',
@@ -319,14 +325,12 @@ function Group(props) {
       }
       else {
         setOpenPayBackDialog(false);
-        setPayBackSign(false);
         setPayBackAmount(0);
         setPayBackComment('');
         getGroupInfo();
       }
     } catch (error) {
       setOpenPayBackDialog(false);
-      setPayBackSign(false);
       setPayBackAmount(0);
       setPayBackComment('');
       alert(error)
@@ -340,21 +344,31 @@ function Group(props) {
   useEffect(() => {
     if (eventList.length === 0) return
     let total = 0
-    eventList.forEach(ele => {
-      if (ele.creditor === currentUser.username) total += ele.amount
-      else if (ele.debtor === currentUser.username) total -= ele.amount
-    })
-    setSum(total)
-
     let balanceList = [];
-    for (let i = 0; i < memberList.length; i += 1) { balanceList.push(0); }
+    let balanceListForUser = [];
+    for (let i = 0; i < memberList.length; i += 1) {
+      balanceList.push(0);
+      balanceListForUser.push(0);
+    }
     eventList.forEach(event => {
       let creditorIdx = memberList.findIndex(member => event.creditor === member);
       let debtorIdx = memberList.findIndex(member => event.debtor === member);
       balanceList[creditorIdx] += event.amount;
       balanceList[debtorIdx] -= event.amount;
+      if (event.creditor === currentUser.username) {
+        balanceListForUser[debtorIdx] += event.amount
+        console.log(balanceListForUser[debtorIdx])
+        total += event.amount
+      }
+      else if (event.debtor === currentUser.username) {
+        balanceListForUser[creditorIdx] -= event.amount
+        total -= event.amount
+      }
+      // console.log(balanceListForUser[debtorIdx])
     })
+    setSum(total)
     setMemberBalance(balanceList);
+    setMemberBalanceForUser(balanceListForUser);
   }, [eventList])
 
   useEffect(() => {
@@ -518,6 +532,9 @@ function Group(props) {
                   <IconButton onClick={() => setOpenAddUserDialog(true)}>
                     <AddIcon />
                   </IconButton>
+                  <IconButton onClick={() => setOpenRemoveUserDialog(true)}>
+                    <DeleteIcon />
+                  </IconButton>
                 </Box>
                 {memberList.map((user, idx) => (
                   <ListItem className={classes.listItem}>
@@ -526,12 +543,16 @@ function Group(props) {
                     </ListItemAvatar>
                     <ListItemText primary={user} />
                     <ListItemSecondaryAction>
-                      <IconButton
-                        edge="end" aria-label="delete"
-                        onClick={() => handleRemoveUser(user)}
+                    {
+                      user === currentUser.username ? <></> :
+                      <ListItemText primary={`合計：${memberBalanceForUser[idx]}`} />
+                    }
+                      {/* <IconButton
+                        edge="end"
+                        onClick={handleAddUser}
                       >
-                        <DeleteIcon />
-                      </IconButton>
+                        <AttachMoneyIcon />
+                      </IconButton> */}
                     </ListItemSecondaryAction>
                   </ListItem>
                 ))}
@@ -612,8 +633,8 @@ function Group(props) {
                             </Box>
                           </TableCell>
                           <TableCell align="center">{event.description}</TableCell>
-                          <TableCell align="center" className={(event.amount < 0) ? classes.red : classes.green}>
-                            {(event.amount < 0) ? event.amount : `+${event.amount}`}
+                          <TableCell align="center" className={classes.green}>
+                            {event.amount}
                           </TableCell>
                           <TableCell align="center">
                             {timeFromNow ?
@@ -792,6 +813,45 @@ function Group(props) {
         </DialogActions>
       </Dialog>
 
+      {/* remove member from group */}
+      <Dialog
+        open={openRemoveUserDialog}
+        onClose={handleRemoveUserClose}
+        maxWidth="md"
+      >
+        <DialogTitle>移除成員</DialogTitle>
+        <DialogContent>
+          <TextField
+            required
+            select
+            margin="dense"
+            label="移除成員"
+            fullWidth
+            value={removeUser}
+            onChange={e => setRemoveUser(e.target.value)}
+          >
+            {memberList && memberList.map(member =>
+              <MenuItem value={member} key={member}>
+                {member}
+              </MenuItem>
+            )}
+          </TextField>
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={handleRemoveUserClose} color="primary">
+            取消
+          </Button>
+          <Button
+            disabled={removeUser === ""}
+            onClick={handleRemoveUser}
+            color="primary"
+          >
+            確認
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* edit event dialog */}
       <Dialog
         open={openEditDialog}
@@ -800,7 +860,7 @@ function Group(props) {
       >
         <DialogTitle>編輯交易</DialogTitle>
         <DialogContent>
-          <Typography>{payBackSign ? `${currentCreditor}欠${currentDebtor}` : `${currentDebtor}欠${currentCreditor}`}</Typography>
+          <Typography>{`${currentDebtor}欠${currentCreditor}`}</Typography>
           <TextField
             required
             margin="dense"
