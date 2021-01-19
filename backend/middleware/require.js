@@ -39,4 +39,4 @@ const requirement = {
   }
 }
 
-export default requirement
+module.exports = requirement;

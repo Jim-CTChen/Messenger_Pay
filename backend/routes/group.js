@@ -1,9 +1,9 @@
 const express = require("express");
 const api = express.Router();
 
-import { Event, User, Group } from '../model/models'
-import handleMissing from '../middleware/utility'
-import requirement from '../middleware/require'
+const { Event, User, Group } = require('../model/models');
+const handleMissing = require('../middleware/utility');
+const requirement = require('../middleware/require');
 
 api.use((req, res, next) => { // check required 
   const requiredList = requirement.group[`${req.method}`][`${req.path}`];
@@ -204,4 +204,4 @@ api.post('/removeUser', async (req, res) => {
   });
 })
 
-export default api;
+module.exports = api;

@@ -1,9 +1,9 @@
 const express = require("express");
 const api = express.Router();
 
-import { User } from '../model/models'
-import handleMissing from '../middleware/utility'
-import requirement from '../middleware/require'
+const { User } = require('../model/models');
+const handleMissing = require('../middleware/utility');
+const requirement = require('../middleware/require');
 
 api.use((req, res, next) => { // check required 
   const requiredList = requirement.user[`${req.method}`][`${req.path}`];
@@ -133,4 +133,4 @@ api.post('/', async (req, res) => {
   })
 })
 
-export default api;
+module.exports = api;

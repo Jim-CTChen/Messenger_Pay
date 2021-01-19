@@ -5,9 +5,9 @@ const jwt = require("jsonwebtoken");
 const jwtKey = "messengerPayJwtKey";
 const jwtExpirySeconds = 60 * 60 * 24;
 
-import { User } from '../model/models'
-import handleMissing from '../middleware/utility'
-import requirement from '../middleware/require'
+const { User } = require('../model/models');
+const handleMissing = require('../middleware/utility');
+const requirement = require('../middleware/require');
 
 api.use((req, res, next) => { // check required 
   const requiredList = requirement.auth[`${req.method}`][`${req.path}`];
@@ -80,4 +80,4 @@ api.post('/login', async (req, res) => {
   });
 });
 
-export default api;
+module.exports = api;
