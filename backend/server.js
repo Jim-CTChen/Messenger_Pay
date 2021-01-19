@@ -31,6 +31,7 @@ app.listen(port, () =>
   console.log(`Example app listening on port ${port}!`),
 );
 
+app.use(express.static('../frontend/build'));
 app.use(cors());
 app.use(cookieParser())
 app.use(bodyParser.urlencoded({ extended: true }));
