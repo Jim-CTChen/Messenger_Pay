@@ -1,3 +1,5 @@
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
 const mongoose = require('mongoose');
 const express = require('express');
 const cors = require('cors');
