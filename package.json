@@ -6,7 +6,7 @@
   "author": "Jim-CTChen <b07901036@ntu.edu.tw>",
   "license": "MIT",
   "scripts": {
-    "build": "yarn build",
+    "heroku-postbuild": "cd frontend && yarn && yarn build",
     "start": "cd backend && yarn server"
   }
 }
