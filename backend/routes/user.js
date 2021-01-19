@@ -1,5 +1,8 @@
 const express = require("express");
 const api = express.Router();
+const jwt = require("jsonwebtoken");
+const jwtKey = "messengerPayJwtKey";
+const jwtExpirySeconds = 60 * 60 * 24;
 
 import { User } from '../model/models'
 import handleMissing from '../middleware/utility'
@@ -121,13 +124,17 @@ api.post('/login', async (req, res) => {
       data: null
     });
   }
-  else {
-    return res.status(200).send({
-      success: true,
-      error: null,
-      data: `${user.username} login successfully!`
-    });
-  }
+  const token = jwt.sign({ username, password }, jwtKey, {
+    algorithm: "HS256",
+    expiresIn: jwtExpirySeconds,
+  })
+
+  res.cookie("token", token, { maxAge: jwtExpirySeconds * 1000 });
+  return res.status(200).send({
+    success: true,
+    error: null,
+    data: token
+  });
 });
 
 api.post('/', async (req, res) => {
