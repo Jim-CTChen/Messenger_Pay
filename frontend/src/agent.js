@@ -5,9 +5,24 @@ import { API_ROOT } from './constants/config'
 axios.defaults.baseURL = API_ROOT
 axios.defaults.headers.common['Content-Type'] = 'application/json'
 axios.defaults.headers.common.Accept = 'application/json'
+axios.defaults.headers.common['Authorization'] = window.localStorage.getItem('jwt')
+axios.defaults.headers.common.token = window.localStorage.getItem('jwt')
+// axios.defaults.headers.common['Authorization'] =
+//   'Bearer ' + localStorage.getItem('jwt');
+
+const Auth = {
+  authorization: async () => await axios.get('/auth')
+}
 
 const User = {
-  login: async (body) => await axios.post('/user/login', body),
+  login: async (body) => {
+    const result = await axios.post('/user/login', body);
+    if (result.data.success) {
+      axios.defaults.headers.common.token = result.data.data;
+      window.localStorage.setItem('jwt', result.data.data);
+    }
+    return result
+  },
   createUser: async (body) => await axios.post('/user', body),
   getUserInfo: async (name) => await axios.get(`/user?username=${name}`)
 }
@@ -28,6 +43,7 @@ const Group = {
 }
 
 export default {
+  Auth,
   User,
   Event,
   Group

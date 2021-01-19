@@ -57,6 +57,7 @@ function Header(props) {
   const handleLogout = () => {
     setAnchorEl(null)
     setCurrentUser(null);
+    window.localStorage.removeItem('jwt');
     history.replace('/login')
   }
 

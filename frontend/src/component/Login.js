@@ -38,7 +38,8 @@ function Login(props) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isWaiting, setIsWaiting] = useState(false);
-  const { setCurrentUser } = useContext(AuthContext);
+  const [isWaitingAuth, setIsWaitingAuth] = useState(true);
+  const { currentUser, setCurrentUser } = useContext(AuthContext);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -52,7 +53,7 @@ function Login(props) {
       setIsWaiting(false);
       console.log('result', result);
       if (result.data.success) {
-        setCurrentUser({ username:username, isLogin: true });
+        setCurrentUser({ username: username, isLogin: true, isTokenValid: true });
         history.push('/');
       } else {
         console.log('result', result)
@@ -64,78 +65,81 @@ function Login(props) {
     }
   }
 
+  const checkAuth = async () => {
+    if (!window.localStorage.getItem('jwt')) {
+      setIsWaitingAuth(false);
+      return;
+    }
+    try {
+      let result = await agent.Auth.authorization();
+      if (result.data.success) {
+        setCurrentUser({ username: result.data.data.username, isLogin: true, isTokenValid: true });
+        history.push('/');
+      }
+      setIsWaitingAuth(false);
+    } catch (e) {
+      setCurrentUser(null);
+      setIsWaitingAuth(false);
+      console.log(e);
+    }
+  }
+
+  useEffect(() => {
+    checkAuth()
+  }, [])
+
   return (
     <div id="page-login" className="container">
-      <form onSubmit={handleSubmit}>
-        <Paper className={classes.paper}>
-          <Box id="page-login__wrapper" p={6}>
-            <Box my={2}>
-              <Typography variant="h3">Login</Typography>
+      {!isWaitingAuth &&
+        <form onSubmit={handleSubmit}>
+          <Paper className={classes.paper}>
+            <Box id="page-login__wrapper" p={6}>
+              <Box my={2}>
+                <Typography variant="h3">Login</Typography>
+              </Box>
+              <TextField
+                label="帳號"
+                fullWidth
+                placeholder="請輸入您的帳號"
+                margin="normal"
+                required
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+              />
+              <TextField
+                label="密碼"
+                fullWidth
+                placeholder="請輸入您的密碼"
+                margin="normal"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                type="password"
+                InputLabelProps={{ shrink: true }}
+              />
+              <Box mt={7}>
+                <Button
+                  className={classes.button}
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  size="large">
+                  登入
+                </Button>
+                <Button
+                  className={classes.button}
+                  color="primary"
+                  onClick={() => {
+                    history.push('/register')
+                  }}>
+                  新增帳號
+                </Button>
+              </Box>
             </Box>
-            <TextField
-              label="帳號"
-              fullWidth
-              placeholder="請輸入您的帳號"
-              margin="normal"
-              required
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              InputLabelProps={{ shrink: true }}
-            />
-            <TextField
-              label="密碼"
-              fullWidth
-              placeholder="請輸入您的密碼"
-              margin="normal"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              type="password"
-              InputLabelProps={{ shrink: true }}
-            />
-            <Box mt={7}>
-              <Button
-                className={classes.button}
-                type="submit"
-                variant="contained"
-                color="primary"
-                size="large">
-                登入
-              </Button>
-              <Button
-                className={classes.button}
-                color="primary"
-                onClick={() => {
-                  history.push('/register')
-                }}>
-                新增帳號
-              </Button>
-            </Box>
-          </Box>
-        </Paper>
-      </form>
-      {/* forgot */}
-      {/* <Dialog
-        aria-labelledby="simple-dialog-title"
-        open={errorDialogOpen}
-        maxWidth="xs"
-        onClose={() => setErrorDialogOpen(false)}
-        fullWidth>
-        <Box my={1}>
-          <DialogTitle id="user-dialog__title">登入錯誤</DialogTitle>
-        </Box>
-        <DialogContent>
-          {errorMsg && i18n.t(`errorCode.${errorMsg.error}`)}
-        </DialogContent>
-        <Box my={1}>
-          <DialogActions>
-            <Button autoFocus primary onClick={() => setErrorDialogOpen(false)}>
-              關閉
-            </Button>
-            <Box mx={1}></Box>
-          </DialogActions>
-        </Box>
-      </Dialog> */}
+          </Paper>
+        </form>
+      }
       <Backdrop className={classes.backdrop} open={isWaiting}>
         <CircularProgress color="inherit" />
       </Backdrop>
