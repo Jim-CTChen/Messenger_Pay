@@ -1,12 +1,12 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "server.js",
   "license": "MIT",
   "type": "module",
   "scripts": {
     "heroku-postbuild": "cd frontend && yarn && yarn build", 
-    "start": "node backend/server.js"
+    "start": "nodemon backend/server.js"
   },
   "dependencies": {
     "body-parser": "^1.19.0",
