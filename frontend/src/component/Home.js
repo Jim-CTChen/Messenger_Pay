@@ -39,7 +39,7 @@ const styles = (theme) => ({
   blockPaper: {
     padding: theme.spacing(1),
     textAlign: 'center',
-    color: theme.palette.text.secondary,
+    // color: theme.palette.text.secondary,
   },
   blockSec1: {
     margin: theme.spacing(1),
@@ -124,31 +124,19 @@ function Home(props) {
   const handleAmountCalculate = () => {
     let pos = 0
     let neg = 0
-    if (tabValue === 0) {
-      if (friendList.length === 0) return
-      friendList.forEach(friend => {
-        if (friend.balance >= 0) pos += friend.balance
-        else neg += friend.balance
-      })
-      setPosAmount(pos)
-      setNegAmount(neg)
-      setTotalAmount(pos + neg)
-    }
-    else if (tabValue === 1) {
-      if (groupList.length === 0) return
-      groupList.forEach(group => {
-        if (group.balance >= 0) pos += group.balance
-        else neg += group.balance
-      })
-      setPosAmount(pos)
-      setNegAmount(neg)
-      setTotalAmount(pos + neg)
-    }
+    if (friendList.length === 0) return
+    friendList.forEach(friend => {
+      if (friend.balance >= 0) pos += friend.balance
+      else neg += friend.balance
+    })
+    setPosAmount(pos)
+    setNegAmount(Math.abs(neg))
+    setTotalAmount(pos + neg)
   }
 
   useEffect(() => {
     handleAmountCalculate();
-  }, [friendList, groupList, tabValue])
+  }, [friendList, groupList])
 
   const handleFriendClose = () => {
     setOpenFriendDialog(false)
@@ -285,7 +273,9 @@ function Home(props) {
             </div>
             <Divider className={classes.divider} variant="middle" />
             <div className={classes.blockSec2}>
-              <Typography variant="h5">
+              <Typography variant="h5" 
+                className={totalAmount >= 0 ? classes.green : classes.red}
+              >
                 {totalAmount}
               </Typography>
             </div>

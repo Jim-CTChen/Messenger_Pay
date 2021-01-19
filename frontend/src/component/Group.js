@@ -354,14 +354,12 @@ function Group(props) {
       balanceList[debtorIdx] -= event.amount;
       if (event.creditor === currentUser.username) {
         balanceListForUser[debtorIdx] += event.amount
-        console.log(balanceListForUser[debtorIdx])
         total += event.amount
       }
       else if (event.debtor === currentUser.username) {
         balanceListForUser[creditorIdx] -= event.amount
         total -= event.amount
       }
-      // console.log(balanceListForUser[debtorIdx])
     })
     setSum(total)
     setMemberBalance(balanceList);
@@ -537,15 +535,37 @@ function Group(props) {
                     <User user={user} />
                     <ListItemSecondaryAction>
                       {
-                        user === currentUser.username ? <></> :
-                          <ListItemText primary={`合計：${memberBalanceForUser[idx]}`} />
+                        (user === currentUser.username |
+                         !eventList.length |
+                         Number(memberBalanceForUser[idx]) === 0
+                        ) ? <></> :
+                        <ListItemText 
+                          primary={
+                            memberBalanceForUser[idx] > 0 ?
+                            `+${memberBalanceForUser[idx]}` :
+                            `${memberBalanceForUser[idx]}`
+                          }
+                          className={
+                            memberBalanceForUser[idx] > 0 ?
+                            classes.green : classes.red
+                          }
+                        />
+                        // <Button
+                        //   variant="outlined"
+                        //   size="medium"
+                        //   startIcon={<AttachMoneyIcon />}
+                        //   onClick={handleAddUser}
+                        // >
+                        //   {`${memberBalanceForUser[idx]}`}
+                        // </Button>
+                        // <IconButton
+                        //   edge="end"
+                        //   onClick={handleAddUser}
+                        // >
+                        //   <ListItemText primary={`${memberBalanceForUser[idx]}`} />
+                        //   <AttachMoneyIcon />
+                        // </IconButton> 
                       }
-                      {/* <IconButton
-                        edge="end"
-                        onClick={handleAddUser}
-                      >
-                        <AttachMoneyIcon />
-                      </IconButton> */}
                     </ListItemSecondaryAction>
                   </ListItem>
                 ))}
