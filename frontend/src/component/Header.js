@@ -142,10 +142,9 @@ function Header(props) {
               <IconButton color="inherit" className={classes.iconButtonAvatar}>
                 <Avatar
                   style={{ background: color }}
-                  alt={currentUser.username}
                   onClick={e => setAnchorEl(e.currentTarget)}
                 >
-                  {currentUser.username[0]}
+                  {currentUser.username ? currentUser.username[0] : ''}
                 </Avatar>
               </IconButton>
             </Box>

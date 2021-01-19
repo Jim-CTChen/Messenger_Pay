@@ -536,10 +536,10 @@ function Group(props) {
                   <ListItem className={classes.listItem}>
                     <User user={user} />
                     <ListItemSecondaryAction>
-                    {
-                      user === currentUser.username ? <></> :
-                      <ListItemText primary={`合計：${memberBalanceForUser[idx]}`} />
-                    }
+                      {
+                        user === currentUser.username ? <></> :
+                          <ListItemText primary={`合計：${memberBalanceForUser[idx]}`} />
+                      }
                       {/* <IconButton
                         edge="end"
                         onClick={handleAddUser}
@@ -810,7 +810,8 @@ function Group(props) {
       <Dialog
         open={openRemoveUserDialog}
         onClose={handleRemoveUserClose}
-        maxWidth="md"
+        maxWidth="xs"
+        fullWidth
       >
         <DialogTitle>移除成員</DialogTitle>
         <DialogContent>
