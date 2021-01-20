@@ -15,6 +15,8 @@ import MoreVertIcon from '@material-ui/icons/MoreVert';
 import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 import Box from '@material-ui/core/Box';
+import Backdrop from '@material-ui/core/Backdrop'
+import CircularProgress from '@material-ui/core/CircularProgress'
 import { withStyles } from '@material-ui/core/styles';
 
 import Divider from '@material-ui/core/Divider';
@@ -33,6 +35,10 @@ import constants from '../constants/index'
 const timeAgo = new TimeAgo();
 
 const styles = (theme) => ({
+  backdrop: {
+    zIndex: theme.zIndex.drawer + 1,
+    color: '#fff'
+  },
   paper: {
     maxWidth: 936,
     margin: 'auto',
@@ -81,19 +87,24 @@ function Account(props) {
   const { classes } = props;
   const { currentUser } = useContext(AuthContext);
   const history = useHistory();
+
+  const [isWaiting, setIsWaiting] = useState(false);
   const [eventList, setEventList] = useState([]);
   const [timeFromNow, setTimeFromNow] = useState(false);
   const [balance, setBalance] = useState(0);
 
   const getAllEvent = async () => {
     if (!currentUser || !currentUser.username) return
+    setIsWaiting(true);
     try {
       const result = await agent.Event.getAllEvent(currentUser.username);
       if (result.data.success) {
         setEventList(result.data.data.events);
         setBalance(result.data.data.balance);
       }
+      setIsWaiting(false);
     } catch (e) {
+      setIsWaiting(false);
       alert(e);
     }
   }
@@ -186,11 +197,12 @@ function Account(props) {
                 </TableBody>
               </Table>
             </>
-
-
           </Paper>
         </Grid>
       </Grid>
+      <Backdrop className={classes.backdrop} open={isWaiting}>
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </>
   );
 }

@@ -51,17 +51,15 @@ function Login(props) {
       };
       const result = await agent.Auth.login(body);
       setIsWaiting(false);
-      console.log('result', result);
       if (result.data.success) {
         setCurrentUser({ username: username, isLogin: true, isTokenValid: true });
         history.push('/');
       } else {
-        console.log('result', result)
         alert(result.data.error);
       }
     } catch (err) {
       setIsWaiting(false);
-      console.log('err', err)
+      alert(err)
     }
   }
 
@@ -80,7 +78,7 @@ function Login(props) {
     } catch (e) {
       setCurrentUser(null);
       setIsWaitingAuth(false);
-      console.log(e);
+      alert(e);
     }
   }
 

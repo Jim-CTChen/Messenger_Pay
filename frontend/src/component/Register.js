@@ -51,17 +51,14 @@ function Register(props) {
       };
       const result = await agent.User.createUser(body);
       setIsWaiting(false);
-      console.log('result', result);
       if (result.data.success) {
         setCurrentUser({ ...result.data.data, isLogin: true });
         history.push('/');
       } else {
-        console.log('result', result)
         alert(result.data.error);
       }
     } catch (err) {
       setIsWaiting(false);
-      console.log('err', err)
     }
   }
 

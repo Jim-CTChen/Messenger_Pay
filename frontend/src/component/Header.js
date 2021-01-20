@@ -30,7 +30,6 @@ const styles = (theme) => ({
     cursor: 'pointer'
   },
   appBar: {
-    zIndex: 9999,
     padding: 8,
     display: 'flex'
   },
@@ -62,7 +61,6 @@ function Header(props) {
   const getColor = (name) => {
     const rng = seedrandom(name);
     let rand = Math.round(rng() * COLOR_ARRAY.length);
-    console.log('rand', rand)
     return COLOR_ARRAY[rand];
   }
 
@@ -125,12 +123,14 @@ function Header(props) {
                 Messenger Pay
               </Typography>
             </Box>
-            <Box>
-              <Button className={classes.button} variant="outlined" color="inherit" size="small">
-                Web setup
-              </Button>
-              <Tooltip title="Help">
-                <IconButton color="inherit" onClick={e => setAnchorEl(e.currentTarget)}>
+            <Box style={{ display: 'flex', alignItems: 'center' }}>
+              <Box mr={2} ml={2}>
+                <Button className={classes.button} variant="outlined" color="inherit" size="small">
+                  About
+                </Button>
+              </Box>
+              {/* <Tooltip title="Help">
+                <IconButton color="inherit">
                   <HelpIcon />
                 </IconButton>
               </Tooltip>
@@ -138,15 +138,17 @@ function Header(props) {
                 <IconButton color="inherit">
                   <NotificationsIcon />
                 </IconButton>
-              </Tooltip>
-              <IconButton color="inherit" className={classes.iconButtonAvatar}>
-                <Avatar
-                  style={{ background: color }}
-                  onClick={e => setAnchorEl(e.currentTarget)}
-                >
-                  {currentUser.username ? currentUser.username[0] : ''}
-                </Avatar>
-              </IconButton>
+              </Tooltip> */}
+              <Avatar
+                style={{ background: color, cursor: 'pointer' }}
+                onClick={e => setAnchorEl(e.currentTarget)}
+              >
+                {currentUser.username ? currentUser.username[0] : ''}
+              </Avatar> &nbsp;
+              <Typography
+                style={{ cursor: 'pointer' }}
+                onClick={e => setAnchorEl(e.currentTarget)}
+              >{currentUser.username}</Typography>
             </Box>
           </Grid>
         </Toolbar>

@@ -14,7 +14,6 @@ function User(props) {
   const getColor = (name) => {
     const rng = seedrandom(name);
     let rand = Math.round(rng() * COLOR_ARRAY.length);
-    console.log('rand', rand)
     return COLOR_ARRAY[rand];
   }
 

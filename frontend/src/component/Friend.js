@@ -17,6 +17,8 @@ import AccessTimeIcon from '@material-ui/icons/AccessTime';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import SortByAlphaIcon from '@material-ui/icons/SortByAlpha';
 import Button from '@material-ui/core/Button'
+import Backdrop from '@material-ui/core/Backdrop'
+import CircularProgress from '@material-ui/core/CircularProgress'
 import Typography from '@material-ui/core/Typography'
 import { Icon } from '@material-ui/core';
 // Dialog
@@ -49,6 +51,10 @@ TimeAgo.addDefaultLocale(zh);
 const timeAgo = new TimeAgo();
 
 const styles = (theme) => ({
+  backdrop: {
+    zIndex: theme.zIndex.drawer + 1,
+    color: '#fff'
+  },
   paper: {
     maxWidth: 936,
     margin: 'auto',
@@ -101,6 +107,7 @@ const TAB_VALUE = [
 function Friend(props) {
   const { classes } = props;
 
+  const [isWaiting, setIsWaiting] = useState(false);
   const [tabValue, setTabValue] = useState(0);
   const [displayMode, setDisplayMode] = useState(DISPLAY_MODE[0]);
   const [eventList, setEventList] = useState([])
@@ -174,6 +181,7 @@ function Friend(props) {
       description: comment,
       type: 'PERSONAL'
     }
+    setIsWaiting(true);
     try {
       const result = await agent.Event.createEvent(payload);
       if (!result.data.success) {
@@ -185,7 +193,9 @@ function Friend(props) {
         setComment('');
         getEventInfo();
       }
+      setIsWaiting(false);
     } catch (error) {
+      setIsWaiting(false);
       setOpenFriendDialog(false);
       setAmount('');
       setComment('');
@@ -195,6 +205,7 @@ function Friend(props) {
 
   const getEventInfo = async () => {
     if (!currentUser.username) return
+    setIsWaiting(true);
     try {
       const result = await agent.Event.getFriendEvent(currentUser.username, friend);
       if (!result.data.success) {
@@ -203,7 +214,9 @@ function Friend(props) {
       else {
         setEventList(result.data.data.events)
       }
+      setIsWaiting(false);
     } catch (error) {
+      setIsWaiting(false);
       alert(error);
     }
   }
@@ -236,6 +249,7 @@ function Friend(props) {
       description: editComment,
       type: 'PERSONAL',
     }
+    setIsWaiting(true);
     try {
       const result = await agent.Event.updateEvent(payload);
       if (!result.data.success) {
@@ -247,7 +261,9 @@ function Friend(props) {
         setEditComment('');
         getEventInfo();
       }
+      setIsWaiting(false);
     } catch (error) {
+      setIsWaiting(false);
       setOpenFriendEditDialog(false);
       setEditAmount('');
       setEditComment('');
@@ -272,6 +288,7 @@ function Friend(props) {
       description: payBackComment,
       type: 'PERSONAL'
     }
+    setIsWaiting(true);
     try {
       const result = await agent.Event.createEvent(payload);
       if (!result.data.success) {
@@ -284,7 +301,9 @@ function Friend(props) {
         setPayBackComment('');
         getEventInfo();
       }
+      setIsWaiting(false);
     } catch (error) {
+      setIsWaiting(false);
       setOpenFriendPayBackDialog(false);
       setPayBackSign(false);
       setPayBackAmount(0);
@@ -508,7 +527,7 @@ function Friend(props) {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      { displayMode === 'default' ? 
+                      {displayMode === 'default' ?
                         eventList.map((event, id) => (
                           <TableRow key={id}>
                             <TableCell align="center">
@@ -531,11 +550,11 @@ function Friend(props) {
                             <TableCell align="center">
                               {
                                 event.type === 'PERSONAL' ?
-                                <IconButton onClick={e =>
-                                  handleEventMoreActionClick(e, event.id, event.amount, event.description)}
-                                >
-                                  <MoreVertIcon />
-                                </IconButton> : <></>
+                                  <IconButton onClick={e =>
+                                    handleEventMoreActionClick(e, event.id, event.amount, event.description)}
+                                  >
+                                    <MoreVertIcon />
+                                  </IconButton> : <></>
                               }
                             </TableCell>
                           </TableRow>
@@ -562,15 +581,15 @@ function Friend(props) {
                             <TableCell align="center">
                               {
                                 event.type === 'PERSONAL' ?
-                                <IconButton onClick={e =>
-                                  handleEventMoreActionClick(e, event.id, event.amount, event.description)}
-                                >
-                                  <MoreVertIcon />
-                                </IconButton> : <></>
+                                  <IconButton onClick={e =>
+                                    handleEventMoreActionClick(e, event.id, event.amount, event.description)}
+                                  >
+                                    <MoreVertIcon />
+                                  </IconButton> : <></>
                               }
                             </TableCell>
                           </TableRow>
-                      ))}
+                        ))}
                     </TableBody>
                   </Table>
                 </> :
@@ -678,7 +697,7 @@ function Friend(props) {
             label="金額"
             placeholder="請填入非負數字"
             value={amount}
-            error={isNaN(amount) | amount < 0}
+            error={isNaN(amount) || amount < 0}
             onChange={e => setAmount(e.target.value)}
           />
         </DialogContent>
@@ -697,7 +716,12 @@ function Friend(props) {
             取消
           </Button>
           <Button
-            disabled={isNaN(amount) | amount === '' | amount < 0}
+            disabled={
+              isNaN(amount) ||
+              amount === '' ||
+              amount < 0 ||
+              !comment
+            }
             onClick={handleFriendSubmit} color="primary"
           >
             確認
@@ -720,7 +744,7 @@ function Friend(props) {
             label="金額"
             placeholder="請填入非負數字"
             value={editAmount}
-            error={isNaN(editAmount) | editAmount < 0}
+            error={isNaN(editAmount) || editAmount < 0}
             onChange={e => setEditAmount(e.target.value)}
           />
         </DialogContent>
@@ -739,7 +763,12 @@ function Friend(props) {
             取消
           </Button>
           <Button
-            disabled={isNaN(editAmount) | editAmount === '' | editAmount < 0}
+            disabled={
+              isNaN(editAmount) ||
+              editAmount === '' ||
+              editAmount < 0 ||
+              !editComment
+            }
             onClick={handleFriendEditSubmit} color="primary"
           >
             確認
@@ -761,7 +790,7 @@ function Friend(props) {
             label="金額"
             placeholder="請填入非負數字"
             value={payBackAmount}
-            error={isNaN(payBackAmount) | payBackAmount < 0}
+            error={isNaN(payBackAmount) || payBackAmount < 0}
             onChange={e => setPayBackAmount(e.target.value)}
           />
         </DialogContent>
@@ -780,13 +809,21 @@ function Friend(props) {
             取消
         </Button>
           <Button
-            disabled={isNaN(payBackAmount) | payBackAmount === '' | payBackAmount < 0}
+            disabled={
+              isNaN(payBackAmount) ||
+              payBackAmount === '' ||
+              payBackAmount < 0 ||
+              !payBackComment
+            }
             onClick={handleFriendPayBackSubmit} color="primary"
           >
             確認
         </Button>
         </DialogActions>
       </Dialog>
+      <Backdrop className={classes.backdrop} open={isWaiting}>
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </>
   );
 }

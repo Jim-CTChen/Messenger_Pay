@@ -8,6 +8,8 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
+import Backdrop from '@material-ui/core/Backdrop'
+import CircularProgress from '@material-ui/core/CircularProgress'
 import { withStyles } from '@material-ui/core/styles';
 import Divider from '@material-ui/core/Divider'
 import Box from '@material-ui/core/Box'
@@ -15,7 +17,6 @@ import IconButton from '@material-ui/core/IconButton';
 import AddIcon from '@material-ui/icons/Add';
 import Button from '@material-ui/core/Button'
 import Typography from '@material-ui/core/Typography'
-import { Icon } from '@material-ui/core';
 // Dialog
 import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
@@ -32,6 +33,10 @@ import agent from '../agent';
 import User from './usage/User';
 
 const styles = (theme) => ({
+  backdrop: {
+    zIndex: theme.zIndex.drawer + 1,
+    color: '#fff'
+  },
   paper: {
     maxWidth: 936,
     margin: 'auto',
@@ -39,7 +44,6 @@ const styles = (theme) => ({
   blockPaper: {
     padding: theme.spacing(1),
     textAlign: 'center',
-    // color: theme.palette.text.secondary,
   },
   blockSec1: {
     margin: theme.spacing(1),
@@ -88,6 +92,8 @@ const sign = [
 
 function Home(props) {
   const { classes } = props;
+
+  const [isWaiting, setIsWaiting] = useState(false);
   const [posAmount, setPosAmount] = useState(0);
   const [negAmount, setNegAmount] = useState(0);
   const [totalAmount, setTotalAmount] = useState(0);
@@ -181,6 +187,7 @@ function Home(props) {
       groupName: groupName,
       usernames: users
     }
+    setIsWaiting(true);
     try {
       const result = await agent.Group.createGroup(payload);
       if (!result.data.success) {
@@ -192,7 +199,9 @@ function Home(props) {
         setGroupUsers('');
         getUserInfo();
       }
+      setIsWaiting(false);
     } catch (error) {
+      setIsWaiting(false);
       setOpenGroupDialog(false);
       setGroupName('');
       setGroupUsers('');
@@ -201,9 +210,8 @@ function Home(props) {
   };
 
   const getUserInfo = async () => {
-    if (!currentUser.isLogin) {
-      return
-    }
+    if (!currentUser.isLogin) return
+    setIsWaiting(true);
     try {
       const result = await agent.User.getUserInfo(currentUser.username);
       if (!result.data.success) {
@@ -213,7 +221,9 @@ function Home(props) {
         setFriendList(result.data.data.friends);
         setGroupList(result.data.data.groups);
       }
+      setIsWaiting(false);
     } catch (error) {
+      setIsWaiting(false);
       alert(error);
     }
   }
@@ -224,7 +234,6 @@ function Home(props) {
 
   const handleGroupClick = (groupName, id) => {
     history.push(`/group/${groupName}/${id}`);
-    // history.push({ pathname: `/group/${name}`, data: { id: id } });
   }
 
   useEffect(() => {
@@ -273,7 +282,7 @@ function Home(props) {
             </div>
             <Divider className={classes.divider} variant="middle" />
             <div className={classes.blockSec2}>
-              <Typography variant="h5" 
+              <Typography variant="h5"
                 className={totalAmount >= 0 ? classes.green : classes.red}
               >
                 {totalAmount}
@@ -414,7 +423,7 @@ function Home(props) {
             label="金額"
             placeholder="請填入非負數字"
             value={amount}
-            error={isNaN(amount) | amount < 0}
+            error={isNaN(amount) || amount < 0}
             onChange={e => setAmount(e.target.value)}
           />
         </DialogContent>
@@ -433,7 +442,12 @@ function Home(props) {
             取消
           </Button>
           <Button
-            disabled={name === '' | amount === '' | isNaN(amount)}
+            disabled={
+              name === '' ||
+              amount === '' ||
+              isNaN(amount) ||
+              !comment
+            }
             onClick={handleFriendSubmit} color="primary"
           >
             確認
@@ -481,6 +495,9 @@ function Home(props) {
           </Button>
         </DialogActions>
       </Dialog>
+      <Backdrop className={classes.backdrop} open={isWaiting}>
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </>
   );
 }

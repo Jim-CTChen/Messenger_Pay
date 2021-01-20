@@ -6,6 +6,8 @@ import PropTypes from 'prop-types';
 import Paper from '@material-ui/core/Paper';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
+import Backdrop from '@material-ui/core/Backdrop'
+import CircularProgress from '@material-ui/core/CircularProgress'
 import { withStyles } from '@material-ui/core/styles';
 import Divider from '@material-ui/core/Divider'
 import Avatar from '@material-ui/core/Avatar';
@@ -61,6 +63,10 @@ import constants from '../constants/index'
 const timeAgo = new TimeAgo()
 
 const styles = (theme) => ({
+  backdrop: {
+    zIndex: theme.zIndex.drawer + 1,
+    color: '#fff'
+  },
   paper: {
     maxWidth: 936,
     margin: 'auto',
@@ -107,6 +113,7 @@ const TAB_VALUE = [
 function Group(props) {
   const { classes } = props;
 
+  const [isWaiting, setIsWaiting] = useState(false);
   const [tabValue, setTabValue] = useState(0);
   const [memberList, setMemberList] = useState([]);
   const [displayMode, setDisplayMode] = useState(DISPLAY_MODE[0]);
@@ -167,6 +174,7 @@ function Group(props) {
       groupId: id,
       usernames: users
     }
+    setIsWaiting(true);
     try {
       const result = await agent.Group.addUser(payload);
       if (!result.data.success) {
@@ -174,12 +182,14 @@ function Group(props) {
       }
       else {
         setOpenAddUserDialog(false);
-        setAddUser('')
+        setAddUser('');
         getGroupInfo();
       }
+      setIsWaiting(false);
     } catch (error) {
       setOpenAddUserDialog(false);
-      setAddUser('')
+      setAddUser('');
+      setIsWaiting(false);
       alert(error)
     }
   }
@@ -193,6 +203,7 @@ function Group(props) {
       groupId: id,
       usernames: removeUser
     }
+    setIsWaiting(true);
     try {
       const result = await agent.Group.removeUser(payload);
       if (!result.data.success) {
@@ -208,8 +219,10 @@ function Group(props) {
           getGroupInfo();
         }
       }
+      setIsWaiting(false);
     } catch (error) {
-      alert(error)
+      alert(error);
+      setIsWaiting(false);
     }
   }
 
@@ -260,6 +273,7 @@ function Group(props) {
       type: 'GROUP',
       groupId: id
     }
+    setIsWaiting(true);
     try {
       const result = await agent.Event.createEvent(payload);
       if (!result.data.success) {
@@ -273,7 +287,9 @@ function Group(props) {
         setComment('');
         getGroupInfo();
       }
+      setIsWaiting(false);
     } catch (error) {
+      setIsWaiting(false);
       setOpenDialog(false);
       setCreditor('');
       setDebtor('');
@@ -285,6 +301,7 @@ function Group(props) {
 
   const getGroupInfo = async () => {
     if (!currentUser.username) return
+    setIsWaiting(true);
     try {
       const result = await agent.Group.getGroupEvent(currentUser.username, id);
       if (!result.data.success) {
@@ -295,7 +312,9 @@ function Group(props) {
         setMemberList(result.data.data.users)
         setEventList(result.data.data.events)
       }
+      setIsWaiting(false);
     } catch (error) {
+      setIsWaiting(false);
       alert(error);
     }
   }
@@ -328,6 +347,7 @@ function Group(props) {
       description: editComment,
       type: 'GROUP',
     }
+    setIsWaiting(true);
     try {
       const result = await agent.Event.updateEvent(payload);
       if (!result.data.success) {
@@ -339,7 +359,9 @@ function Group(props) {
         setEditComment('');
         getGroupInfo();
       }
+      setIsWaiting(false);
     } catch (error) {
+      setIsWaiting(false);
       setOpenEditDialog(false);
       setEditAmount('');
       setEditComment('');
@@ -365,6 +387,7 @@ function Group(props) {
       type: 'GROUP',
       groupId: id
     }
+    setIsWaiting(true);
     try {
       const result = await agent.Event.createEvent(payload);
       if (!result.data.success) {
@@ -376,7 +399,9 @@ function Group(props) {
         setPayBackComment('');
         getGroupInfo();
       }
+      setIsWaiting(false);
     } catch (error) {
+      setIsWaiting(false);
       setOpenPayBackDialog(false);
       setPayBackAmount(0);
       setPayBackComment('');
@@ -491,7 +516,6 @@ function Group(props) {
     const hourOffset = 60 * 60 * 1000;
     const minOffset = 60 * 1000;
     const secOffset = 1000;
-    console.log('time', userTimeData)
     if (Object.values(userTimeData).some(value => value >= dayOffset / 2)) {
       for (const [key, value] of Object.entries(userTimeData)) {
         let roundedValue = Math.round(value / dayOffset, -1);
@@ -581,25 +605,25 @@ function Group(props) {
                   </IconButton>
                 </Box>
                 {memberList.map((user, idx) => (
-                  <ListItem className={classes.listItem}>
+                  <ListItem className={classes.listItem} key={idx}>
                     <User user={user} />
                     <ListItemSecondaryAction>
                       {
                         (user === currentUser.username |
-                         !eventList.length |
-                         Number(memberBalanceForUser[idx]) === 0
+                          !eventList.length |
+                          Number(memberBalanceForUser[idx]) === 0
                         ) ? <></> :
-                        <ListItemText 
-                          primary={
-                            memberBalanceForUser[idx] > 0 ?
-                            `+${memberBalanceForUser[idx]}` :
-                            `${memberBalanceForUser[idx]}`
-                          }
-                          className={
-                            memberBalanceForUser[idx] > 0 ?
-                            classes.green : classes.red
-                          }
-                        />
+                          <ListItemText
+                            primary={
+                              memberBalanceForUser[idx] > 0 ?
+                                `+${memberBalanceForUser[idx]}` :
+                                `${memberBalanceForUser[idx]}`
+                            }
+                            className={
+                              memberBalanceForUser[idx] > 0 ?
+                                classes.green : classes.red
+                            }
+                          />
                         // <Button
                         //   variant="outlined"
                         //   size="medium"
@@ -687,8 +711,8 @@ function Group(props) {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      { filterMode === 'default' ?
-                        ( displayMode === 'default' ?
+                      {filterMode === 'default' ?
+                        (displayMode === 'default' ?
                           eventList.map((event, id) => (
                             <TableRow key={id}>
                               <TableCell align="center">
@@ -760,156 +784,156 @@ function Group(props) {
                                 }
                               </TableCell>
                             </TableRow>
-                        ))) :
-                        (filterMode === 'creditor' ? 
-                          ( displayMode === 'default' ?
-                            eventList.filter(event => event.creditor === currentUser.username).
-                            map((event, id) => (
-                              <TableRow key={id}>
-                                <TableCell align="center">
-                                  <User user={event.creditor} onClick={() => {
-                                    if (event.creditor === currentUser.username) history.push('/account');
-                                    else history.push(`/friend/${event.creditor}`);
-                                  }} />
-                                </TableCell>
-                                <TableCell align="center">
-                                  <User user={event.debtor} onClick={() => {
-                                    if (event.debtor === currentUser.username) history.push('/account');
-                                    else history.push(`/friend/${event.debtor}`);
-                                  }} />
-                                </TableCell>
-                                <TableCell align="center">{event.description}</TableCell>
-                                <TableCell align="center" className={classes.green}>
-                                  {event.amount}
-                                </TableCell>
-                                <TableCell align="center">
-                                  {timeFromNow ?
-                                    timeAgo.format(new Date(event.time)) :
-                                    dayjs(event.time).format('YYYY/MM/DD HH:mm')
-                                  }
-                                </TableCell>
-                                <TableCell align="center">
-                                  {(currentUser.username === event.creditor |
-                                    currentUser.username === event.debtor) ?
-                                    <IconButton onClick={e =>
-                                      handleEventMoreActionClick(e, event.id, event.creditor, event.debtor, event.amount, event.description)}
-                                    >
-                                      <MoreVertIcon />
-                                    </IconButton> : <></>
-                                  }
-                                </TableCell>
-                              </TableRow> )) :
-                            sortedList.filter(event => event.creditor === currentUser.username).
-                            map((event, id) => (
-                              <TableRow key={id}>
-                                <TableCell align="center">
-                                  <User user={event.creditor} onClick={() => {
-                                    if (event.creditor === currentUser.username) history.push('/account');
-                                    else history.push(`/friend/${event.creditor}`);
-                                  }} />
-                                </TableCell>
-                                <TableCell align="center">
-                                  <User user={event.debtor} onClick={() => {
-                                    if (event.debtor === currentUser.username) history.push('/account');
-                                    else history.push(`/friend/${event.debtor}`);
-                                  }} />
-                                </TableCell>
-                                <TableCell align="center">{event.description}</TableCell>
-                                <TableCell align="center" className={classes.green}>
-                                  {event.amount}
-                                </TableCell>
-                                <TableCell align="center">
-                                  {timeFromNow ?
-                                    timeAgo.format(new Date(event.time)) :
-                                    dayjs(event.time).format('YYYY/MM/DD HH:mm')
-                                  }
-                                </TableCell>
-                                <TableCell align="center">
-                                  {(currentUser.username === event.creditor |
-                                    currentUser.username === event.debtor) ?
-                                    <IconButton onClick={e =>
-                                      handleEventMoreActionClick(e, event.id, event.creditor, event.debtor, event.amount, event.description)}
-                                    >
-                                      <MoreVertIcon />
-                                    </IconButton> : <></>
-                                  }
-                                </TableCell>
-                              </TableRow>
                           ))) :
-                          ( displayMode === 'default' ?
+                        (filterMode === 'creditor' ?
+                          (displayMode === 'default' ?
+                            eventList.filter(event => event.creditor === currentUser.username).
+                              map((event, id) => (
+                                <TableRow key={id}>
+                                  <TableCell align="center">
+                                    <User user={event.creditor} onClick={() => {
+                                      if (event.creditor === currentUser.username) history.push('/account');
+                                      else history.push(`/friend/${event.creditor}`);
+                                    }} />
+                                  </TableCell>
+                                  <TableCell align="center">
+                                    <User user={event.debtor} onClick={() => {
+                                      if (event.debtor === currentUser.username) history.push('/account');
+                                      else history.push(`/friend/${event.debtor}`);
+                                    }} />
+                                  </TableCell>
+                                  <TableCell align="center">{event.description}</TableCell>
+                                  <TableCell align="center" className={classes.green}>
+                                    {event.amount}
+                                  </TableCell>
+                                  <TableCell align="center">
+                                    {timeFromNow ?
+                                      timeAgo.format(new Date(event.time)) :
+                                      dayjs(event.time).format('YYYY/MM/DD HH:mm')
+                                    }
+                                  </TableCell>
+                                  <TableCell align="center">
+                                    {(currentUser.username === event.creditor |
+                                      currentUser.username === event.debtor) ?
+                                      <IconButton onClick={e =>
+                                        handleEventMoreActionClick(e, event.id, event.creditor, event.debtor, event.amount, event.description)}
+                                      >
+                                        <MoreVertIcon />
+                                      </IconButton> : <></>
+                                    }
+                                  </TableCell>
+                                </TableRow>)) :
+                            sortedList.filter(event => event.creditor === currentUser.username).
+                              map((event, id) => (
+                                <TableRow key={id}>
+                                  <TableCell align="center">
+                                    <User user={event.creditor} onClick={() => {
+                                      if (event.creditor === currentUser.username) history.push('/account');
+                                      else history.push(`/friend/${event.creditor}`);
+                                    }} />
+                                  </TableCell>
+                                  <TableCell align="center">
+                                    <User user={event.debtor} onClick={() => {
+                                      if (event.debtor === currentUser.username) history.push('/account');
+                                      else history.push(`/friend/${event.debtor}`);
+                                    }} />
+                                  </TableCell>
+                                  <TableCell align="center">{event.description}</TableCell>
+                                  <TableCell align="center" className={classes.green}>
+                                    {event.amount}
+                                  </TableCell>
+                                  <TableCell align="center">
+                                    {timeFromNow ?
+                                      timeAgo.format(new Date(event.time)) :
+                                      dayjs(event.time).format('YYYY/MM/DD HH:mm')
+                                    }
+                                  </TableCell>
+                                  <TableCell align="center">
+                                    {(currentUser.username === event.creditor |
+                                      currentUser.username === event.debtor) ?
+                                      <IconButton onClick={e =>
+                                        handleEventMoreActionClick(e, event.id, event.creditor, event.debtor, event.amount, event.description)}
+                                      >
+                                        <MoreVertIcon />
+                                      </IconButton> : <></>
+                                    }
+                                  </TableCell>
+                                </TableRow>
+                              ))) :
+                          (displayMode === 'default' ?
                             eventList.filter(event => event.debtor === currentUser.username).
-                            map((event, id) => (
-                              <TableRow key={id}>
-                                <TableCell align="center">
-                                  <User user={event.creditor} onClick={() => {
-                                    if (event.creditor === currentUser.username) history.push('/account');
-                                    else history.push(`/friend/${event.creditor}`);
-                                  }} />
-                                </TableCell>
-                                <TableCell align="center">
-                                  <User user={event.debtor} onClick={() => {
-                                    if (event.debtor === currentUser.username) history.push('/account');
-                                    else history.push(`/friend/${event.debtor}`);
-                                  }} />
-                                </TableCell>
-                                <TableCell align="center">{event.description}</TableCell>
-                                <TableCell align="center" className={classes.green}>
-                                  {event.amount}
-                                </TableCell>
-                                <TableCell align="center">
-                                  {timeFromNow ?
-                                    timeAgo.format(new Date(event.time)) :
-                                    dayjs(event.time).format('YYYY/MM/DD HH:mm')
-                                  }
-                                </TableCell>
-                                <TableCell align="center">
-                                  {(currentUser.username === event.creditor |
-                                    currentUser.username === event.debtor) ?
-                                    <IconButton onClick={e =>
-                                      handleEventMoreActionClick(e, event.id, event.creditor, event.debtor, event.amount, event.description)}
-                                    >
-                                      <MoreVertIcon />
-                                    </IconButton> : <></>
-                                  }
-                                </TableCell>
-                              </TableRow> )) :        
+                              map((event, id) => (
+                                <TableRow key={id}>
+                                  <TableCell align="center">
+                                    <User user={event.creditor} onClick={() => {
+                                      if (event.creditor === currentUser.username) history.push('/account');
+                                      else history.push(`/friend/${event.creditor}`);
+                                    }} />
+                                  </TableCell>
+                                  <TableCell align="center">
+                                    <User user={event.debtor} onClick={() => {
+                                      if (event.debtor === currentUser.username) history.push('/account');
+                                      else history.push(`/friend/${event.debtor}`);
+                                    }} />
+                                  </TableCell>
+                                  <TableCell align="center">{event.description}</TableCell>
+                                  <TableCell align="center" className={classes.green}>
+                                    {event.amount}
+                                  </TableCell>
+                                  <TableCell align="center">
+                                    {timeFromNow ?
+                                      timeAgo.format(new Date(event.time)) :
+                                      dayjs(event.time).format('YYYY/MM/DD HH:mm')
+                                    }
+                                  </TableCell>
+                                  <TableCell align="center">
+                                    {(currentUser.username === event.creditor |
+                                      currentUser.username === event.debtor) ?
+                                      <IconButton onClick={e =>
+                                        handleEventMoreActionClick(e, event.id, event.creditor, event.debtor, event.amount, event.description)}
+                                      >
+                                        <MoreVertIcon />
+                                      </IconButton> : <></>
+                                    }
+                                  </TableCell>
+                                </TableRow>)) :
                             sortedList.filter(event => event.debtor === currentUser.username).
-                            map((event, id) => (
-                              <TableRow key={id}>
-                                <TableCell align="center">
-                                  <User user={event.creditor} onClick={() => {
-                                    if (event.creditor === currentUser.username) history.push('/account');
-                                    else history.push(`/friend/${event.creditor}`);
-                                  }} />
-                                </TableCell>
-                                <TableCell align="center">
-                                  <User user={event.debtor} onClick={() => {
-                                    if (event.debtor === currentUser.username) history.push('/account');
-                                    else history.push(`/friend/${event.debtor}`);
-                                  }} />
-                                </TableCell>
-                                <TableCell align="center">{event.description}</TableCell>
-                                <TableCell align="center" className={classes.green}>
-                                  {event.amount}
-                                </TableCell>
-                                <TableCell align="center">
-                                  {timeFromNow ?
-                                    timeAgo.format(new Date(event.time)) :
-                                    dayjs(event.time).format('YYYY/MM/DD HH:mm')
-                                  }
-                                </TableCell>
-                                <TableCell align="center">
-                                  {(currentUser.username === event.creditor |
-                                    currentUser.username === event.debtor) ?
-                                    <IconButton onClick={e =>
-                                      handleEventMoreActionClick(e, event.id, event.creditor, event.debtor, event.amount, event.description)}
-                                    >
-                                      <MoreVertIcon />
-                                    </IconButton> : <></>
-                                  }
-                                </TableCell>
-                              </TableRow>
-                      ))))}
+                              map((event, id) => (
+                                <TableRow key={id}>
+                                  <TableCell align="center">
+                                    <User user={event.creditor} onClick={() => {
+                                      if (event.creditor === currentUser.username) history.push('/account');
+                                      else history.push(`/friend/${event.creditor}`);
+                                    }} />
+                                  </TableCell>
+                                  <TableCell align="center">
+                                    <User user={event.debtor} onClick={() => {
+                                      if (event.debtor === currentUser.username) history.push('/account');
+                                      else history.push(`/friend/${event.debtor}`);
+                                    }} />
+                                  </TableCell>
+                                  <TableCell align="center">{event.description}</TableCell>
+                                  <TableCell align="center" className={classes.green}>
+                                    {event.amount}
+                                  </TableCell>
+                                  <TableCell align="center">
+                                    {timeFromNow ?
+                                      timeAgo.format(new Date(event.time)) :
+                                      dayjs(event.time).format('YYYY/MM/DD HH:mm')
+                                    }
+                                  </TableCell>
+                                  <TableCell align="center">
+                                    {(currentUser.username === event.creditor |
+                                      currentUser.username === event.debtor) ?
+                                      <IconButton onClick={e =>
+                                        handleEventMoreActionClick(e, event.id, event.creditor, event.debtor, event.amount, event.description)}
+                                      >
+                                        <MoreVertIcon />
+                                      </IconButton> : <></>
+                                    }
+                                  </TableCell>
+                                </TableRow>
+                              ))))}
                     </TableBody>
                   </Table>
                 </> :
@@ -1051,7 +1075,7 @@ function Group(props) {
             label="金額"
             placeholder="請填入非負數字"
             value={amount}
-            error={isNaN(amount) | amount < 0}
+            error={isNaN(amount) || amount < 0}
             onChange={e => setAmount(e.target.value)}
           />
         </DialogContent>
@@ -1076,7 +1100,8 @@ function Group(props) {
               isNaN(amount) ||
               amount === '' ||
               amount < 0 ||
-              creditor === debtor
+              creditor === debtor ||
+              !comment
             }
             onClick={handleGroupSubmit} color="primary"
           >
@@ -1171,7 +1196,7 @@ function Group(props) {
             label="金額"
             placeholder="請填入非負數字"
             value={editAmount}
-            error={isNaN(editAmount) | editAmount < 0}
+            error={isNaN(editAmount) || editAmount < 0}
             onChange={e => setEditAmount(e.target.value)}
           />
         </DialogContent>
@@ -1190,7 +1215,12 @@ function Group(props) {
             取消
         </Button>
           <Button
-            disabled={isNaN(editAmount) | editAmount === '' | editAmount < 0}
+            disabled={
+              isNaN(editAmount) ||
+              editAmount === '' ||
+              editAmount < 0 ||
+              !editComment
+            }
             onClick={handleEditSubmit} color="primary"
           >
             確認
@@ -1212,7 +1242,7 @@ function Group(props) {
             label="金額"
             placeholder="請填入非負數字"
             value={payBackAmount}
-            error={isNaN(payBackAmount) | payBackAmount < 0}
+            error={isNaN(payBackAmount) || payBackAmount < 0}
             onChange={e => setPayBackAmount(e.target.value)}
           />
         </DialogContent>
@@ -1231,13 +1261,21 @@ function Group(props) {
             取消
         </Button>
           <Button
-            disabled={isNaN(payBackAmount) | payBackAmount === '' | payBackAmount < 0}
+            disabled={
+              isNaN(payBackAmount) ||
+              payBackAmount === '' ||
+              payBackAmount < 0 ||
+              !payBackComment
+            }
             onClick={handlePayBackSubmit} color="primary"
           >
             確認
         </Button>
         </DialogActions>
       </Dialog>
+      <Backdrop className={classes.backdrop} open={isWaiting}>
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </>
   );
 }

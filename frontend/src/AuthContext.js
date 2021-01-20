@@ -13,10 +13,6 @@ export default ({ children }) => {
     isLogin: false
   });
 
-  useEffect(() => {
-    console.log('current', currentUser)
-  }, [currentUser])
-
   return (
     <AuthContext.Provider value={{ currentUser, setCurrentUser }}>
       {children}
