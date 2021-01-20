@@ -1057,6 +1057,7 @@ function Group(props) {
         </DialogContent>
         <DialogContent>
           <TextField
+            required
             margin="dense"
             label="備註"
             value={comment}
@@ -1176,6 +1177,7 @@ function Group(props) {
         </DialogContent>
         <DialogContent>
           <TextField
+            required
             margin="dense"
             label="備註"
             value={editComment}
@@ -1216,6 +1218,7 @@ function Group(props) {
         </DialogContent>
         <DialogContent>
           <TextField
+            required
             margin="dense"
             label="備註"
             value={payBackComment}

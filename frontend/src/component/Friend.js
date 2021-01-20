@@ -684,6 +684,7 @@ function Friend(props) {
         </DialogContent>
         <DialogContent>
           <TextField
+            required
             margin="dense"
             label="備註"
             value={comment}
@@ -725,6 +726,7 @@ function Friend(props) {
         </DialogContent>
         <DialogContent>
           <TextField
+            required
             margin="dense"
             label="備註"
             value={editComment}
@@ -765,6 +767,7 @@ function Friend(props) {
         </DialogContent>
         <DialogContent>
           <TextField
+            required
             margin="dense"
             label="備註"
             value={payBackComment}
