@@ -412,14 +412,15 @@ function Home(props) {
             required
             margin="dense"
             label="金額"
-            placeholder="請填入數字"
+            placeholder="請填入非負數字"
             value={amount}
-            error={isNaN(amount)}
+            error={isNaN(amount) | amount < 0}
             onChange={e => setAmount(e.target.value)}
           />
         </DialogContent>
         <DialogContent>
           <TextField
+            required
             margin="dense"
             label="備註"
             value={comment}
