@@ -1,22 +1,15 @@
-import React, { useState, useEffect, useContext } from 'react'
-import PropTypes from 'prop-types'
-import { useHistory } from 'react-router-dom'
-import Box from '@material-ui/core/Box'
-import TextField from '@material-ui/core/TextField'
-import Button from '@material-ui/core/Button'
-import Paper from '@material-ui/core/Paper'
-import Backdrop from '@material-ui/core/Backdrop'
-import CircularProgress from '@material-ui/core/CircularProgress'
-import Typography from '@material-ui/core/Typography'
-import { makeStyles } from '@material-ui/core/styles'
-import {
-  Dialog,
-  DialogActions,
-  DialogTitle,
-  DialogContent
-} from '@material-ui/core'
-import { AuthContext } from '../AuthContext'
-import agent from '../agent'
+import React, { useState, useContext } from 'react';
+import { useHistory } from 'react-router-dom';
+import Box from '@material-ui/core/Box';
+import TextField from '@material-ui/core/TextField';
+import Button from '@material-ui/core/Button';
+import Paper from '@material-ui/core/Paper';
+import Backdrop from '@material-ui/core/Backdrop';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import Typography from '@material-ui/core/Typography';
+import { makeStyles } from '@material-ui/core/styles';
+import { AuthContext } from '../AuthContext';
+import agent from '../agent';
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -118,6 +111,5 @@ function Register(props) {
     </div>
   )
 }
-
 
 export default Register
