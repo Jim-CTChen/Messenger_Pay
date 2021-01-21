@@ -24,6 +24,8 @@ import AttachMoneyIcon from '@material-ui/icons/AttachMoney';
 import Button from '@material-ui/core/Button'
 import Typography from '@material-ui/core/Typography'
 import { Icon, useEventCallback } from '@material-ui/core';
+import Snackbar from '@material-ui/core/Snackbar';
+import Alert from '@material-ui/lab/Alert';
 // Dialog
 import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
@@ -103,7 +105,8 @@ const styles = (theme) => ({
   },
 });
 
-const DISPLAY_MODE = constants.DISPLAY_MODE;
+const SORT_MODE = constants.SORT_MODE;
+const FILTER_MODE = constants.FILTER_MODE;
 
 const TAB_VALUE = [
   { key: 0, label: '歷史紀錄' },
@@ -116,14 +119,15 @@ function Group(props) {
   const [isWaiting, setIsWaiting] = useState(false);
   const [tabValue, setTabValue] = useState(0);
   const [memberList, setMemberList] = useState([]);
-  const [displayMode, setDisplayMode] = useState(DISPLAY_MODE[0]);
-  const [filterMode, setFilterMode] = useState('default');
+  const [sortMode, setSortMode] = useState(SORT_MODE.TIME_NEW2OLD);
+  const [filterMode, setFilterMode] = useState(FILTER_MODE.ALL);
   const [eventList, setEventList] = useState([]);
-  const [sortedList, setSortedList] = useState([])
+  const [filteredList, setFilteredList] = useState([]);
+  const [renderList, setRenderList] = useState([]);
 
   const [memberBalance, setMemberBalance] = useState([])
   const [memberBalanceForUser, setMemberBalanceForUser] = useState([])
-  const [timeFromNow, setTimeFromNow] = useState(false);
+  const [timeFromNow, setTimeFromNow] = useState(true);
   const [sum, setSum] = useState(0);
   const [groupMemberOpen, setGroupMemberOpen] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
@@ -151,6 +155,11 @@ function Group(props) {
   const [anchorEl2, setAnchorEl2] = useState(null);
   const [anchorEl3, setAnchorEl3] = useState(null);
   const [currentEventId, setCurrentEventId] = useState('');
+  const [snackbarProp, setSnackbarProp] = useState({
+    open: false,
+    message: '',
+    status: 'null'
+  });
 
   const history = useHistory();
   const { currentUser } = useContext(AuthContext);
@@ -178,12 +187,30 @@ function Group(props) {
     try {
       const result = await agent.Group.addUser(payload);
       if (!result.data.success) {
-        alert(result.data.error);
+        setSnackbarProp({
+          open: true,
+          message: result.data.error,
+          status: 'error'
+        })
       }
       else {
         setOpenAddUserDialog(false);
         setAddUser('');
         getGroupInfo();
+        if (result.data.error) {
+          setSnackbarProp({
+            open: true,
+            message: result.data.error,
+            status: 'info'
+          })
+        }
+        else {
+          setSnackbarProp({
+            open: true,
+            message: '成員新增成功',
+            status: 'success'
+          })
+        }
       }
       setIsWaiting(false);
     } catch (error) {
@@ -207,7 +234,11 @@ function Group(props) {
     try {
       const result = await agent.Group.removeUser(payload);
       if (!result.data.success) {
-        alert(result.data.error);
+        setSnackbarProp({
+          open: true,
+          message: result.data.error,
+          status: 'error'
+        })
       }
       else {
         setOpenRemoveUserDialog(false)
@@ -217,6 +248,11 @@ function Group(props) {
         }
         else {
           getGroupInfo();
+          setSnackbarProp({
+            open: true,
+            message: '成員移除成功',
+            status: 'success'
+          })
         }
       }
       setIsWaiting(false);
@@ -228,40 +264,12 @@ function Group(props) {
 
   const handleSort = (sortMode) => {
     setAnchorEl2(null)
-    if (sortMode === DISPLAY_MODE[0]) {
-      setDisplayMode(DISPLAY_MODE[0])
-    }
-    else if (sortMode === DISPLAY_MODE[1]) {
-      setDisplayMode(DISPLAY_MODE[1])
-      const sortList = eventList.concat()
-      sortList.sort(function (a, b) {
-        return a.amount - b.amount
-      })
-      setSortedList(sortList)
-    }
-    else if (sortMode === DISPLAY_MODE[2]) {
-      setDisplayMode(DISPLAY_MODE[2])
-      const sortList = eventList.concat()
-      sortList.sort(function (a, b) {
-        return b.amount - a.amount
-      })
-      setSortedList(sortList)
-    }
-    else if (sortMode === DISPLAY_MODE[3]) {
-      setDisplayMode(DISPLAY_MODE[3])
-      const sortList = eventList.concat()
-      sortList.sort(function (a, b) {
-        return new Date(b.time) - new Date(a.time);
-      })
-      setSortedList(sortList)
-    }
+    setSortMode(sortMode);
   }
 
-  const handleFilter = (mode) => {
-    setAnchorEl3(null)
-    if (mode === 'default') setFilterMode('default')
-    else if (mode === 'creditor') setFilterMode('creditor')
-    else if (mode === 'debtor') setFilterMode('debtor')
+  const handleFilter = (filterMode) => {
+    setAnchorEl3(null);
+    setFilterMode(filterMode);
   }
 
   const handleGroupSubmit = async () => {
@@ -277,7 +285,11 @@ function Group(props) {
     try {
       const result = await agent.Event.createEvent(payload);
       if (!result.data.success) {
-        alert(result.data.error);
+        setSnackbarProp({
+          open: true,
+          message: result.data.error,
+          status: 'error'
+        })
       }
       else {
         setOpenDialog(false);
@@ -286,6 +298,11 @@ function Group(props) {
         setAmount('');
         setComment('');
         getGroupInfo();
+        setSnackbarProp({
+          open: true,
+          message: '交易新增成功',
+          status: 'success'
+        })
       }
       setIsWaiting(false);
     } catch (error) {
@@ -306,7 +323,7 @@ function Group(props) {
       const result = await agent.Group.getGroupEvent(currentUser.username, id);
       if (!result.data.success) {
         alert(result.data.error);
-        history.push('/home')
+        history.push('/home');
       }
       else {
         setMemberList(result.data.data.users)
@@ -351,13 +368,22 @@ function Group(props) {
     try {
       const result = await agent.Event.updateEvent(payload);
       if (!result.data.success) {
-        alert(result.data.error);
+        setSnackbarProp({
+          open: true,
+          message: result.data.error,
+          status: 'error'
+        })
       }
       else {
         setOpenEditDialog(false);
         setEditAmount('');
         setEditComment('');
         getGroupInfo();
+        setSnackbarProp({
+          open: true,
+          message: '交易編輯成功',
+          status: 'success'
+        })
       }
       setIsWaiting(false);
     } catch (error) {
@@ -391,13 +417,22 @@ function Group(props) {
     try {
       const result = await agent.Event.createEvent(payload);
       if (!result.data.success) {
-        alert(result.data.error);
+        setSnackbarProp({
+          open: true,
+          message: result.data.error,
+          status: 'error'
+        })
       }
       else {
         setOpenPayBackDialog(false);
         setPayBackAmount(0);
         setPayBackComment('');
         getGroupInfo();
+        setSnackbarProp({
+          open: true,
+          message: '交易新增成功',
+          status: 'success'
+        })
       }
       setIsWaiting(false);
     } catch (error) {
@@ -408,6 +443,59 @@ function Group(props) {
       alert(error)
     }
   };
+
+  // handle filter mode
+  useEffect(() => {
+    if (!eventList) return
+    let newList = [];
+    switch (filterMode) {
+      case FILTER_MODE.ALL:
+        newList = eventList;
+        break;
+      case FILTER_MODE.CREDITOR:
+        newList = eventList.filter(event => event.creditor === currentUser.username);
+        break;
+      case FILTER_MODE.DEBTOR:
+        newList = eventList.filter(event => event.debtor === currentUser.username);
+        break;
+      default:
+        newList = eventList;
+    }
+    setFilteredList(newList);
+
+  }, [eventList, filterMode])
+
+  // handle sort mode
+  useEffect(() => {
+    let sortedList = [...filteredList];
+    switch (sortMode) {
+      case SORT_MODE.TIME_NEW2OLD:
+        sortedList.sort(function (a, b) {
+          return new Date(b.time) - new Date(a.time);
+        })
+        break;
+      case SORT_MODE.TIME_OLD2NEW:
+        sortedList.sort(function (a, b) {
+          return new Date(a.time) - new Date(b.time);
+        })
+        break;
+      case SORT_MODE.AMOUNT_H2L:
+        sortedList.sort(function (a, b) {
+          return b.amount - a.amount
+        })
+        break;
+      case SORT_MODE.AMOUNT_L2H:
+        sortedList.sort(function (a, b) {
+          return a.amount - b.amount
+        })
+        break;
+      default:
+        sortedList.sort(function (a, b) {
+          return new Date(b.time) - new Date(a.time);
+        })
+    }
+    setRenderList(sortedList)
+  }, [filteredList, sortMode])
 
   useEffect(() => {
     getGroupInfo();
@@ -428,12 +516,12 @@ function Group(props) {
       balanceList[creditorIdx] += event.amount;
       balanceList[debtorIdx] -= event.amount;
       if (event.creditor === currentUser.username) {
-        balanceListForUser[debtorIdx] += event.amount
-        total += event.amount
+        balanceListForUser[debtorIdx] += event.amount;
+        total += event.amount;
       }
       else if (event.debtor === currentUser.username) {
-        balanceListForUser[creditorIdx] -= event.amount
-        total -= event.amount
+        balanceListForUser[creditorIdx] -= event.amount;
+        total -= event.amount;
       }
     })
     setSum(total)
@@ -441,6 +529,7 @@ function Group(props) {
     setMemberBalanceForUser(balanceListForUser);
   }, [eventList])
 
+  // parse chart data
   useEffect(() => {
     if (!eventList) return;
     const newData = [...eventList, { time: new Date().toISOString() }]
@@ -711,229 +800,42 @@ function Group(props) {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {filterMode === 'default' ?
-                        (displayMode === 'default' ?
-                          eventList.map((event, id) => (
-                            <TableRow key={id}>
-                              <TableCell align="center">
-                                <User user={event.creditor} onClick={() => {
-                                  if (event.creditor === currentUser.username) history.push('/account');
-                                  else history.push(`/friend/${event.creditor}`);
-                                }} />
-                              </TableCell>
-                              <TableCell align="center">
-                                <User user={event.debtor} onClick={() => {
-                                  if (event.debtor === currentUser.username) history.push('/account');
-                                  else history.push(`/friend/${event.debtor}`);
-                                }} />
-                              </TableCell>
-                              <TableCell align="center">{event.description}</TableCell>
-                              <TableCell align="center" className={classes.green}>
-                                {event.amount}
-                              </TableCell>
-                              <TableCell align="center">
-                                {timeFromNow ?
-                                  timeAgo.format(new Date(event.time)) :
-                                  dayjs(event.time).format('YYYY/MM/DD HH:mm')
-                                }
-                              </TableCell>
-                              <TableCell align="center">
-                                {(currentUser.username === event.creditor |
-                                  currentUser.username === event.debtor) ?
-                                  <IconButton onClick={e =>
-                                    handleEventMoreActionClick(e, event.id, event.creditor, event.debtor, event.amount, event.description)}
-                                  >
-                                    <MoreVertIcon />
-                                  </IconButton> : <></>
-                                }
-                              </TableCell>
-                            </TableRow>
-                          )) :
-                          sortedList.map((event, id) => (
-                            <TableRow key={id}>
-                              <TableCell align="center">
-                                <User user={event.creditor} onClick={() => {
-                                  if (event.creditor === currentUser.username) history.push('/account');
-                                  else history.push(`/friend/${event.creditor}`);
-                                }} />
-                              </TableCell>
-                              <TableCell align="center">
-                                <User user={event.debtor} onClick={() => {
-                                  if (event.debtor === currentUser.username) history.push('/account');
-                                  else history.push(`/friend/${event.debtor}`);
-                                }} />
-                              </TableCell>
-                              <TableCell align="center">{event.description}</TableCell>
-                              <TableCell align="center" className={classes.green}>
-                                {event.amount}
-                              </TableCell>
-                              <TableCell align="center">
-                                {timeFromNow ?
-                                  timeAgo.format(new Date(event.time)) :
-                                  dayjs(event.time).format('YYYY/MM/DD HH:mm')
-                                }
-                              </TableCell>
-                              <TableCell align="center">
-                                {(currentUser.username === event.creditor |
-                                  currentUser.username === event.debtor) ?
-                                  <IconButton onClick={e =>
-                                    handleEventMoreActionClick(e, event.id, event.creditor, event.debtor, event.amount, event.description)}
-                                  >
-                                    <MoreVertIcon />
-                                  </IconButton> : <></>
-                                }
-                              </TableCell>
-                            </TableRow>
-                          ))) :
-                        (filterMode === 'creditor' ?
-                          (displayMode === 'default' ?
-                            eventList.filter(event => event.creditor === currentUser.username).
-                              map((event, id) => (
-                                <TableRow key={id}>
-                                  <TableCell align="center">
-                                    <User user={event.creditor} onClick={() => {
-                                      if (event.creditor === currentUser.username) history.push('/account');
-                                      else history.push(`/friend/${event.creditor}`);
-                                    }} />
-                                  </TableCell>
-                                  <TableCell align="center">
-                                    <User user={event.debtor} onClick={() => {
-                                      if (event.debtor === currentUser.username) history.push('/account');
-                                      else history.push(`/friend/${event.debtor}`);
-                                    }} />
-                                  </TableCell>
-                                  <TableCell align="center">{event.description}</TableCell>
-                                  <TableCell align="center" className={classes.green}>
-                                    {event.amount}
-                                  </TableCell>
-                                  <TableCell align="center">
-                                    {timeFromNow ?
-                                      timeAgo.format(new Date(event.time)) :
-                                      dayjs(event.time).format('YYYY/MM/DD HH:mm')
-                                    }
-                                  </TableCell>
-                                  <TableCell align="center">
-                                    {(currentUser.username === event.creditor |
-                                      currentUser.username === event.debtor) ?
-                                      <IconButton onClick={e =>
-                                        handleEventMoreActionClick(e, event.id, event.creditor, event.debtor, event.amount, event.description)}
-                                      >
-                                        <MoreVertIcon />
-                                      </IconButton> : <></>
-                                    }
-                                  </TableCell>
-                                </TableRow>)) :
-                            sortedList.filter(event => event.creditor === currentUser.username).
-                              map((event, id) => (
-                                <TableRow key={id}>
-                                  <TableCell align="center">
-                                    <User user={event.creditor} onClick={() => {
-                                      if (event.creditor === currentUser.username) history.push('/account');
-                                      else history.push(`/friend/${event.creditor}`);
-                                    }} />
-                                  </TableCell>
-                                  <TableCell align="center">
-                                    <User user={event.debtor} onClick={() => {
-                                      if (event.debtor === currentUser.username) history.push('/account');
-                                      else history.push(`/friend/${event.debtor}`);
-                                    }} />
-                                  </TableCell>
-                                  <TableCell align="center">{event.description}</TableCell>
-                                  <TableCell align="center" className={classes.green}>
-                                    {event.amount}
-                                  </TableCell>
-                                  <TableCell align="center">
-                                    {timeFromNow ?
-                                      timeAgo.format(new Date(event.time)) :
-                                      dayjs(event.time).format('YYYY/MM/DD HH:mm')
-                                    }
-                                  </TableCell>
-                                  <TableCell align="center">
-                                    {(currentUser.username === event.creditor |
-                                      currentUser.username === event.debtor) ?
-                                      <IconButton onClick={e =>
-                                        handleEventMoreActionClick(e, event.id, event.creditor, event.debtor, event.amount, event.description)}
-                                      >
-                                        <MoreVertIcon />
-                                      </IconButton> : <></>
-                                    }
-                                  </TableCell>
-                                </TableRow>
-                              ))) :
-                          (displayMode === 'default' ?
-                            eventList.filter(event => event.debtor === currentUser.username).
-                              map((event, id) => (
-                                <TableRow key={id}>
-                                  <TableCell align="center">
-                                    <User user={event.creditor} onClick={() => {
-                                      if (event.creditor === currentUser.username) history.push('/account');
-                                      else history.push(`/friend/${event.creditor}`);
-                                    }} />
-                                  </TableCell>
-                                  <TableCell align="center">
-                                    <User user={event.debtor} onClick={() => {
-                                      if (event.debtor === currentUser.username) history.push('/account');
-                                      else history.push(`/friend/${event.debtor}`);
-                                    }} />
-                                  </TableCell>
-                                  <TableCell align="center">{event.description}</TableCell>
-                                  <TableCell align="center" className={classes.green}>
-                                    {event.amount}
-                                  </TableCell>
-                                  <TableCell align="center">
-                                    {timeFromNow ?
-                                      timeAgo.format(new Date(event.time)) :
-                                      dayjs(event.time).format('YYYY/MM/DD HH:mm')
-                                    }
-                                  </TableCell>
-                                  <TableCell align="center">
-                                    {(currentUser.username === event.creditor |
-                                      currentUser.username === event.debtor) ?
-                                      <IconButton onClick={e =>
-                                        handleEventMoreActionClick(e, event.id, event.creditor, event.debtor, event.amount, event.description)}
-                                      >
-                                        <MoreVertIcon />
-                                      </IconButton> : <></>
-                                    }
-                                  </TableCell>
-                                </TableRow>)) :
-                            sortedList.filter(event => event.debtor === currentUser.username).
-                              map((event, id) => (
-                                <TableRow key={id}>
-                                  <TableCell align="center">
-                                    <User user={event.creditor} onClick={() => {
-                                      if (event.creditor === currentUser.username) history.push('/account');
-                                      else history.push(`/friend/${event.creditor}`);
-                                    }} />
-                                  </TableCell>
-                                  <TableCell align="center">
-                                    <User user={event.debtor} onClick={() => {
-                                      if (event.debtor === currentUser.username) history.push('/account');
-                                      else history.push(`/friend/${event.debtor}`);
-                                    }} />
-                                  </TableCell>
-                                  <TableCell align="center">{event.description}</TableCell>
-                                  <TableCell align="center" className={classes.green}>
-                                    {event.amount}
-                                  </TableCell>
-                                  <TableCell align="center">
-                                    {timeFromNow ?
-                                      timeAgo.format(new Date(event.time)) :
-                                      dayjs(event.time).format('YYYY/MM/DD HH:mm')
-                                    }
-                                  </TableCell>
-                                  <TableCell align="center">
-                                    {(currentUser.username === event.creditor |
-                                      currentUser.username === event.debtor) ?
-                                      <IconButton onClick={e =>
-                                        handleEventMoreActionClick(e, event.id, event.creditor, event.debtor, event.amount, event.description)}
-                                      >
-                                        <MoreVertIcon />
-                                      </IconButton> : <></>
-                                    }
-                                  </TableCell>
-                                </TableRow>
-                              ))))}
+                      {renderList.map((event, id) => (
+                        <TableRow key={id}>
+                          <TableCell align="center">
+                            <User user={event.creditor} onClick={() => {
+                              if (event.creditor === currentUser.username) history.push('/account');
+                              else history.push(`/friend/${event.creditor}`);
+                            }} />
+                          </TableCell>
+                          <TableCell align="center">
+                            <User user={event.debtor} onClick={() => {
+                              if (event.debtor === currentUser.username) history.push('/account');
+                              else history.push(`/friend/${event.debtor}`);
+                            }} />
+                          </TableCell>
+                          <TableCell align="center">{event.description}</TableCell>
+                          <TableCell align="center" className={classes.green}>
+                            {event.amount}
+                          </TableCell>
+                          <TableCell align="center">
+                            {timeFromNow ?
+                              timeAgo.format(new Date(event.time)) :
+                              dayjs(event.time).format('YYYY/MM/DD HH:mm')
+                            }
+                          </TableCell>
+                          <TableCell align="center">
+                            {(currentUser.username === event.creditor |
+                              currentUser.username === event.debtor) ?
+                              <IconButton onClick={e =>
+                                handleEventMoreActionClick(e, event.id, event.creditor, event.debtor, event.amount, event.description)}
+                              >
+                                <MoreVertIcon />
+                              </IconButton> : <></>
+                            }
+                          </TableCell>
+                        </TableRow>
+                      ))}
                     </TableBody>
                   </Table>
                 </> :
@@ -976,10 +878,10 @@ function Group(props) {
           horizontal: 'center'
         }}
       >
-        <MenuItem onClick={() => handleSort(DISPLAY_MODE[0])}>時間最早(預設)</MenuItem>
-        <MenuItem onClick={() => handleSort(DISPLAY_MODE[3])}>時間最新</MenuItem>
-        <MenuItem onClick={() => handleSort(DISPLAY_MODE[1])}>金額由小到大</MenuItem>
-        <MenuItem onClick={() => handleSort(DISPLAY_MODE[2])}>金額由大到小</MenuItem>
+        <MenuItem onClick={() => handleSort(SORT_MODE.TIME_NEW2OLD)}>時間最新(預設)</MenuItem>
+        <MenuItem onClick={() => handleSort(SORT_MODE.TIME_OLD2NEW)}>時間最早</MenuItem>
+        <MenuItem onClick={() => handleSort(SORT_MODE.AMOUNT_L2H)}>金額由小到大</MenuItem>
+        <MenuItem onClick={() => handleSort(SORT_MODE.AMOUNT_H2L)}>金額由大到小</MenuItem>
       </Menu>
 
       {/* filter list menu */}
@@ -999,9 +901,9 @@ function Group(props) {
           horizontal: 'center'
         }}
       >
-        <MenuItem onClick={() => handleFilter('default')}>顯示全部(預設)</MenuItem>
-        <MenuItem onClick={() => handleFilter('creditor')}>顯示待收交易</MenuItem>
-        <MenuItem onClick={() => handleFilter('debtor')}>顯示待還交易</MenuItem>
+        <MenuItem onClick={() => handleFilter(FILTER_MODE.ALL)}>顯示全部(預設)</MenuItem>
+        <MenuItem onClick={() => handleFilter(FILTER_MODE.CREDITOR)}>顯示待收交易</MenuItem>
+        <MenuItem onClick={() => handleFilter(FILTER_MODE.DEBTOR)}>顯示待還交易</MenuItem>
       </Menu>
 
       {/* history list menu */}
@@ -1273,6 +1175,15 @@ function Group(props) {
         </Button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar
+        open={snackbarProp.open}
+        autoHideDuration={2000}
+        onClose={() => setSnackbarProp({ ...snackbarProp, open: false })}>
+        <Alert severity={snackbarProp.status}>
+          {snackbarProp.message}
+        </Alert>
+      </Snackbar>
       <Backdrop className={classes.backdrop} open={isWaiting}>
         <CircularProgress color="inherit" />
       </Backdrop>

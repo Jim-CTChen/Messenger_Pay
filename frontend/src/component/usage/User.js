@@ -10,6 +10,7 @@ const COLOR_ARRAY = constants.COLOR_ARRAY;
 function User(props) {
   const { user, onClick } = props;
   const [color, setColor] = useState(COLOR_ARRAY[0]);
+  const [name, setName] = useState('')
 
   const getColor = (name) => {
     const rng = seedrandom(name);
@@ -23,6 +24,8 @@ function User(props) {
   }
 
   useEffect(() => {
+    if (user) setName(user);
+    else setName('No name')
     setColor(getColor(user));
   }, [user])
 
@@ -30,7 +33,7 @@ function User(props) {
     <Box style={style} onClick={() => {
       if (onClick) onClick();
     }}>
-      <Avatar style={{ background: color }}>{user[0]}</Avatar> &nbsp;&nbsp;
+      <Avatar style={{ background: color }}>{name[0]}</Avatar> &nbsp;&nbsp;
       <Typography>{user}</Typography>
     </Box>
   )

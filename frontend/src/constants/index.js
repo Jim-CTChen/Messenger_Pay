@@ -16,12 +16,26 @@ const EVENT_TYPE = {
   },
 }
 
-const DISPLAY_MODE = [
-  'default', 'amountL2H', 'amountH2L', 'timeNew2Old'
-]
+// const SORT_MODE = [
+//   'default', 'amountL2H', 'amountH2L', 'timeNew2Old'
+// ]
+
+const SORT_MODE = {
+  TIME_NEW2OLD: 0,
+  TIME_OLD2NEW: 1,
+  AMOUNT_L2H: 2,
+  AMOUNT_H2L: 3
+}
+
+const FILTER_MODE = {
+  ALL: 0,
+  CREDITOR: 1,
+  DEBTOR: 2
+}
 
 export default {
   COLOR_ARRAY,
   EVENT_TYPE,
-  DISPLAY_MODE
+  SORT_MODE,
+  FILTER_MODE
 }

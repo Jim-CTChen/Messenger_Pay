@@ -20,7 +20,9 @@ import Button from '@material-ui/core/Button'
 import Backdrop from '@material-ui/core/Backdrop'
 import CircularProgress from '@material-ui/core/CircularProgress'
 import Typography from '@material-ui/core/Typography'
-import { Icon } from '@material-ui/core';
+
+import Snackbar from '@material-ui/core/Snackbar';
+import Alert from '@material-ui/lab/Alert';
 // Dialog
 import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
@@ -97,7 +99,8 @@ const sign = [
 ]
 
 const EVENT_TYPE = constants.EVENT_TYPE;
-const DISPLAY_MODE = constants.DISPLAY_MODE;
+const SORT_MODE = constants.SORT_MODE;
+const FILTER_MODE = constants.FILTER_MODE;
 
 const TAB_VALUE = [
   { key: 0, label: '歷史紀錄' },
@@ -109,11 +112,11 @@ function Friend(props) {
 
   const [isWaiting, setIsWaiting] = useState(false);
   const [tabValue, setTabValue] = useState(0);
-  const [displayMode, setDisplayMode] = useState(DISPLAY_MODE[0]);
+  const [sortMode, setSortMode] = useState(SORT_MODE.TIME_NEW2OLD);
   const [eventList, setEventList] = useState([])
-  const [sortedList, setSortedList] = useState([])
+  const [renderList, setRenderList] = useState([])
 
-  const [timeFromNow, setTimeFromNow] = useState(false)
+  const [timeFromNow, setTimeFromNow] = useState(true)
   const [sum, setSum] = useState(0);
   const [openFriendDialog, setOpenFriendDialog] = useState(false);
   const [openFriendEditDialog, setOpenFriendEditDialog] = useState(false);
@@ -134,39 +137,45 @@ function Friend(props) {
   const [anchorEl, setAnchorEl] = useState(null);
   const [anchorEl2, setAnchorEl2] = useState(null);
   const [currentEventId, setCurrentEventId] = useState('');
+  const [snackbarProp, setSnackbarProp] = useState({
+    open: false,
+    message: '',
+    status: 'null'
+  });
+
   const history = useHistory();
   const { currentUser } = useContext(AuthContext);
   const { friend } = useParams();
 
   const handleSort = (sortMode) => {
-    setAnchorEl2(null)
-    if (sortMode === DISPLAY_MODE[0]) {
-      setDisplayMode(DISPLAY_MODE[0])
-    }
-    else if (sortMode === DISPLAY_MODE[1]) {
-      setDisplayMode(DISPLAY_MODE[1])
-      const sortList = eventList.concat()
-      sortList.sort(function (a, b) {
-        return a.amount - b.amount
-      })
-      setSortedList(sortList)
-    }
-    else if (sortMode === DISPLAY_MODE[2]) {
-      setDisplayMode(DISPLAY_MODE[2])
-      const sortList = eventList.concat()
-      sortList.sort(function (a, b) {
-        return b.amount - a.amount
-      })
-      setSortedList(sortList)
-    }
-    else if (sortMode === DISPLAY_MODE[3]) {
-      setDisplayMode(DISPLAY_MODE[3])
-      const sortList = eventList.concat()
-      sortList.sort(function (a, b) {
-        return new Date(b.time) - new Date(a.time);
-      })
-      setSortedList(sortList)
-    }
+    setAnchorEl2(null);
+    setSortMode(sortMode);
+    // if (sortMode === SORT_MODE[0]) {
+    // }
+    // else if (sortMode === SORT_MODE[1]) {
+    //   setDisplayMode(SORT_MODE[1])
+    //   const sortList = eventList.concat()
+    //   sortList.sort(function (a, b) {
+    //     return a.amount - b.amount
+    //   })
+    //   setSortedList(sortList)
+    // }
+    // else if (sortMode === SORT_MODE[2]) {
+    //   setDisplayMode(SORT_MODE[2])
+    //   const sortList = eventList.concat()
+    //   sortList.sort(function (a, b) {
+    //     return b.amount - a.amount
+    //   })
+    //   setSortedList(sortList)
+    // }
+    // else if (sortMode === SORT_MODE[3]) {
+    //   setDisplayMode(SORT_MODE[3])
+    //   const sortList = eventList.concat()
+    //   sortList.sort(function (a, b) {
+    //     return new Date(b.time) - new Date(a.time);
+    //   })
+    //   setSortedList(sortList)
+    // }
   }
 
   const handleFriendClose = () => {
@@ -185,13 +194,22 @@ function Friend(props) {
     try {
       const result = await agent.Event.createEvent(payload);
       if (!result.data.success) {
-        alert(result.data.error);
+        setSnackbarProp({
+          open: true,
+          message: result.data.error,
+          status: 'error'
+        })
       }
       else {
         setOpenFriendDialog(false);
         setAmount('');
         setComment('');
         getEventInfo();
+        setSnackbarProp({
+          open: true,
+          message: '交易新增成功',
+          status: 'success'
+        })
       }
       setIsWaiting(false);
     } catch (error) {
@@ -209,7 +227,11 @@ function Friend(props) {
     try {
       const result = await agent.Event.getFriendEvent(currentUser.username, friend);
       if (!result.data.success) {
-        alert(result.data.error);
+        setSnackbarProp({
+          open: true,
+          message: result.data.error,
+          status: 'error'
+        })
       }
       else {
         setEventList(result.data.data.events)
@@ -253,13 +275,22 @@ function Friend(props) {
     try {
       const result = await agent.Event.updateEvent(payload);
       if (!result.data.success) {
-        alert(result.data.error);
+        setSnackbarProp({
+          open: true,
+          message: result.data.error,
+          status: 'error'
+        })
       }
       else {
         setOpenFriendEditDialog(false);
         setEditAmount('');
         setEditComment('');
         getEventInfo();
+        setSnackbarProp({
+          open: true,
+          message: '交易編輯成功',
+          status: 'success'
+        })
       }
       setIsWaiting(false);
     } catch (error) {
@@ -292,6 +323,11 @@ function Friend(props) {
     try {
       const result = await agent.Event.createEvent(payload);
       if (!result.data.success) {
+        setSnackbarProp({
+          open: true,
+          message: result.data.error,
+          status: 'error'
+        })
         alert(result.data.error);
       }
       else {
@@ -300,6 +336,11 @@ function Friend(props) {
         setPayBackAmount(0);
         setPayBackComment('');
         getEventInfo();
+        setSnackbarProp({
+          open: true,
+          message: '交易新增成功',
+          status: 'success'
+        })
       }
       setIsWaiting(false);
     } catch (error) {
@@ -325,7 +366,41 @@ function Friend(props) {
     setSum(total)
   }, [eventList])
 
-  useEffect(() => { // parse chart data
+  useEffect(() => {
+    if (!eventList) return;
+    let sortedList = [...eventList];
+    switch (sortMode) {
+      case SORT_MODE.TIME_NEW2OLD:
+        sortedList.sort(function (a, b) {
+          return new Date(b.time) - new Date(a.time);
+        })
+        break;
+      case SORT_MODE.TIME_OLD2NEW:
+        sortedList.sort(function (a, b) {
+          return new Date(a.time) - new Date(b.time);
+        })
+        break;
+      case SORT_MODE.AMOUNT_H2L:
+        sortedList.sort(function (a, b) {
+          return b.amount - a.amount
+        })
+        break;
+      case SORT_MODE.AMOUNT_L2H:
+        sortedList.sort(function (a, b) {
+          return a.amount - b.amount
+        })
+        break;
+      default:
+        sortedList.sort(function (a, b) {
+          return new Date(b.time) - new Date(a.time);
+        })
+    }
+    setRenderList(sortedList);
+
+  }, [eventList, sortMode])
+
+  // parse chart data
+  useEffect(() => {
     if (!eventList) return;
     const username = currentUser.username;
     const newData = [...eventList, { time: new Date().toISOString() }];
@@ -450,21 +525,6 @@ function Friend(props) {
                 <Typography>
                   {`合計：${(sum < 0) ? '' : '+'}${sum}`}
                 </Typography>&nbsp;&nbsp;
-                {/* {sum !== 0 &&
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    color={sum < 0 ? "secondary" : "primary"}
-                    onClick={() => {
-                      setComment(sum < 0 ? '還清' : '結清')
-                      setAmountSign(sum >= 0);
-                      setAmount(Math.abs(sum));
-                      setOpenFriendDialog(true);
-                    }}
-                  >
-                    {sum < 0 ? '還清' : '結清'}
-                  </Button>
-                } */}
               </Box>
             </Box>
           </Paper>
@@ -527,69 +587,37 @@ function Friend(props) {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {displayMode === 'default' ?
-                        eventList.map((event, id) => (
-                          <TableRow key={id}>
-                            <TableCell align="center">
-                              <Chip
-                                color={EVENT_TYPE[event.type].color}
-                                label={EVENT_TYPE[event.type].label}
-                                variant="outlined"
-                              />
-                            </TableCell>
-                            <TableCell align="center">{event.description}</TableCell>
-                            <TableCell align="center" className={(event.amount < 0) ? classes.red : classes.green}>
-                              {(event.amount < 0) ? event.amount : `+${event.amount}`}
-                            </TableCell>
-                            <TableCell align="center">
-                              {timeFromNow ?
-                                timeAgo.format(new Date(event.time)) :
-                                dayjs(event.time).format('YYYY/MM/DD HH:mm')
-                              }
-                            </TableCell>
-                            <TableCell align="center">
-                              {
-                                event.type === 'PERSONAL' ?
-                                  <IconButton onClick={e =>
-                                    handleEventMoreActionClick(e, event.id, event.amount, event.description)}
-                                  >
-                                    <MoreVertIcon />
-                                  </IconButton> : <></>
-                              }
-                            </TableCell>
-                          </TableRow>
-                        )) :
-                        sortedList.map((event, id) => (
-                          <TableRow key={id}>
-                            <TableCell align="center">
-                              <Chip
-                                color={EVENT_TYPE[event.type].color}
-                                label={EVENT_TYPE[event.type].label}
-                                variant="outlined"
-                              />
-                            </TableCell>
-                            <TableCell align="center">{event.description}</TableCell>
-                            <TableCell align="center" className={(event.amount < 0) ? classes.red : classes.green}>
-                              {(event.amount < 0) ? event.amount : `+${event.amount}`}
-                            </TableCell>
-                            <TableCell align="center">
-                              {timeFromNow ?
-                                timeAgo.format(new Date(event.time)) :
-                                dayjs(event.time).format('YYYY/MM/DD HH:mm')
-                              }
-                            </TableCell>
-                            <TableCell align="center">
-                              {
-                                event.type === 'PERSONAL' ?
-                                  <IconButton onClick={e =>
-                                    handleEventMoreActionClick(e, event.id, event.amount, event.description)}
-                                  >
-                                    <MoreVertIcon />
-                                  </IconButton> : <></>
-                              }
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                      {renderList.map((event, id) => (
+                        <TableRow key={id}>
+                          <TableCell align="center">
+                            <Chip
+                              color={EVENT_TYPE[event.type].color}
+                              label={EVENT_TYPE[event.type].label}
+                              variant="outlined"
+                            />
+                          </TableCell>
+                          <TableCell align="center">{event.description}</TableCell>
+                          <TableCell align="center" className={(event.amount < 0) ? classes.red : classes.green}>
+                            {(event.amount < 0) ? event.amount : `+${event.amount}`}
+                          </TableCell>
+                          <TableCell align="center">
+                            {timeFromNow ?
+                              timeAgo.format(new Date(event.time)) :
+                              dayjs(event.time).format('YYYY/MM/DD HH:mm')
+                            }
+                          </TableCell>
+                          <TableCell align="center">
+                            {
+                              event.type === 'PERSONAL' ?
+                                <IconButton onClick={e =>
+                                  handleEventMoreActionClick(e, event.id, event.amount, event.description)}
+                                >
+                                  <MoreVertIcon />
+                                </IconButton> : <></>
+                            }
+                          </TableCell>
+                        </TableRow>
+                      ))}
                     </TableBody>
                   </Table>
                 </> :
@@ -633,10 +661,10 @@ function Friend(props) {
           horizontal: 'center'
         }}
       >
-        <MenuItem onClick={() => handleSort(DISPLAY_MODE[0])}>時間最早(預設)</MenuItem>
-        <MenuItem onClick={() => handleSort(DISPLAY_MODE[3])}>時間最新</MenuItem>
-        <MenuItem onClick={() => handleSort(DISPLAY_MODE[1])}>金額由小到大</MenuItem>
-        <MenuItem onClick={() => handleSort(DISPLAY_MODE[2])}>金額由大到小</MenuItem>
+        <MenuItem onClick={() => handleSort(SORT_MODE.TIME_NEW2OLD)}>時間最新(預設)</MenuItem>
+        <MenuItem onClick={() => handleSort(SORT_MODE.TIME_OLD2NEW)}>時間最早</MenuItem>
+        <MenuItem onClick={() => handleSort(SORT_MODE.AMOUNT_L2H)}>金額由小到大</MenuItem>
+        <MenuItem onClick={() => handleSort(SORT_MODE.AMOUNT_H2L)}>金額由大到小</MenuItem>
       </Menu>
 
       {/* history list menu */}
@@ -821,6 +849,15 @@ function Friend(props) {
         </Button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar
+        open={snackbarProp.open}
+        autoHideDuration={2000}
+        onClose={() => setSnackbarProp({ ...snackbarProp, open: false })}>
+        <Alert severity={snackbarProp.status}>
+          {snackbarProp.message}
+        </Alert>
+      </Snackbar>
       <Backdrop className={classes.backdrop} open={isWaiting}>
         <CircularProgress color="inherit" />
       </Backdrop>

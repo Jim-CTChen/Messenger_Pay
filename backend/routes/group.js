@@ -87,6 +87,8 @@ api.post('/', async (req, res) => {
     .select('_id username');
   const idList = userList.map(user => user._id);
   const nameList = userList.map(user => user.username);
+  let notFoundList = [];
+  let errorMsg = null;
 
   if (idList.length === 0) {
     console.log('list', idList)
@@ -96,14 +98,18 @@ api.post('/', async (req, res) => {
       data: null
     });
   }
+  else if (nameList.length !== usernames.length) {
+    notFoundList = usernames.filter(user => !nameList.includes(user));
+    errorMsg = 'User '.concat(notFoundList.join(', ').concat(' not found!'));
+  }
   const newGroup = new Group({
     groupName: groupName,
     users: idList
   })
   await newGroup.save();
 
-  usernames.forEach(async (_user) => {
-    const user = await User.findOne({ username: _user });
+  idList.forEach(async (id) => {
+    const user = await User.findById(id);
     if (user) {
       user.groups.push(newGroup._id);
       await user.save();
@@ -112,7 +118,7 @@ api.post('/', async (req, res) => {
 
   return res.status(200).send({
     success: true,
-    error: null,
+    error: errorMsg,
     data: {
       id: newGroup._id,
       groupName: groupName,
@@ -133,7 +139,7 @@ api.post('/addUser', async (req, res) => {
     });
   }
 
-  let userList = []
+  let userList = [];
   const users = await User.find({ username: { $in: usernames } });
   const idList = users.filter(user => !group.users.includes(user._id))
   users.forEach(async (user) => {
@@ -144,21 +150,18 @@ api.post('/addUser', async (req, res) => {
     }
   })
   group.users = group.users.concat(idList);
-  console.log('users', group.users);
   await group.save();
 
-  let result = ''
-  if (userList.length === 0) {
-    result = `No user is added to group ${group.groupName}`
-  } else if (userList.length === 1) {
-    result = `User ${userList[0]} is added to group ${group.groupName}`
-  } else {
-    result = `User ${userList.join(', ')} are added to group ${group.groupName}`
+  let result = null;
+  if (userList.length !== usernames.length) {
+    const notFoundList = usernames.filter(user => !userList.includes(user));
+    result = 'User '.concat(notFoundList.join(', ').concat(' not found!'));
   }
+
   return res.status(200).send({
     success: true,
-    error: null,
-    data: result
+    error: result,
+    data: null
   });
 })
 

@@ -26,6 +26,9 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import MenuItem from '@material-ui/core/MenuItem';
 
+import Snackbar from '@material-ui/core/Snackbar';
+import Alert from '@material-ui/lab/Alert';
+
 import Grid from '@material-ui/core/Grid';
 
 import { AuthContext } from '../AuthContext';
@@ -109,6 +112,12 @@ function Home(props) {
   const [groupUsers, setGroupUsers] = useState('');
   const [friendList, setFriendList] = useState([]);
   const [groupList, setGroupList] = useState([]);
+  const [snackbarProp, setSnackbarProp] = useState({
+    open: false,
+    message: '',
+    status: 'null'
+  });
+
   const history = useHistory();
   const { currentUser } = useContext(AuthContext);
 
@@ -159,7 +168,11 @@ function Home(props) {
     try {
       const result = await agent.Event.createEvent(payload);
       if (!result.data.success) {
-        alert(result.data.error);
+        setSnackbarProp({
+          open: true,
+          message: result.data.error,
+          status: 'error'
+        })
       }
       else {
         setOpenFriendDialog(false);
@@ -167,6 +180,11 @@ function Home(props) {
         setAmount('');
         setComment('');
         getUserInfo();
+        setSnackbarProp({
+          open: true,
+          message: '交易新增成功',
+          status: 'success'
+        })
       }
     } catch (error) {
       setOpenFriendDialog(false);
@@ -182,7 +200,8 @@ function Home(props) {
   };
 
   const handleGroupSubmit = async () => {
-    const users = groupUsers.split(' ')
+    const users = groupUsers.split(' ');
+    users.push(currentUser.username);
     const payload = {
       groupName: groupName,
       usernames: users
@@ -191,13 +210,31 @@ function Home(props) {
     try {
       const result = await agent.Group.createGroup(payload);
       if (!result.data.success) {
-        alert(result.data.error);
+        setSnackbarProp({
+          open: true,
+          message: result.data.error,
+          status: 'error'
+        });
       }
       else {
         setOpenGroupDialog(false);
         setGroupName('');
         setGroupUsers('');
         getUserInfo();
+        if (result.data.error) {
+          setSnackbarProp({
+            open: true,
+            message: result.data.error,
+            status: 'info'
+          })
+        }
+        else {
+          setSnackbarProp({
+            open: true,
+            message: '群組新增成功',
+            status: 'success'
+          })
+        }
       }
       setIsWaiting(false);
     } catch (error) {
@@ -215,7 +252,11 @@ function Home(props) {
     try {
       const result = await agent.User.getUserInfo(currentUser.username);
       if (!result.data.success) {
-        alert(result.data.error);
+        setSnackbarProp({
+          open: true,
+          message: result.data.error,
+          status: 'error'
+        });
       }
       else {
         setFriendList(result.data.data.friends);
@@ -495,6 +536,14 @@ function Home(props) {
           </Button>
         </DialogActions>
       </Dialog>
+      <Snackbar
+        open={snackbarProp.open}
+        autoHideDuration={2000}
+        onClose={() => setSnackbarProp({ ...snackbarProp, open: false })}>
+        <Alert severity={snackbarProp.status}>
+          {snackbarProp.message}
+        </Alert>
+      </Snackbar>
       <Backdrop className={classes.backdrop} open={isWaiting}>
         <CircularProgress color="inherit" />
       </Backdrop>
