@@ -5,9 +5,13 @@
   "repository": "git@github.com:Jim-CTChen/Messenger_Pay.git",
   "author": "Jim-CTChen <b07901036@ntu.edu.tw>",
   "license": "MIT",
+  "engines": {
+    "node": "10.X"
+  },
   "scripts": {
-    "start": "cd frontend && yarn start",
-    "server": "nodemon --exec babel-node backend/server.js"
+    "start": "node backend/server.js",
+    "server": "nodemon --exec babel-node backend/server.js",
+    "heroku-postbuild": "cd frontend && yarn && yarn build"
   },
   "dependencies": {
     "body-parser": "^1.19.0",
