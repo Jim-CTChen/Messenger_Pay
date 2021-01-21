@@ -109,117 +109,47 @@ const TAB_VALUE = [
 
 function Friend(props) {
   const { classes } = props;
+  const { currentUser } = useContext(AuthContext);
+  const { friend } = useParams();
+  const history = useHistory();
 
   const [isWaiting, setIsWaiting] = useState(false);
   const [tabValue, setTabValue] = useState(0);
-  const [sortMode, setSortMode] = useState(SORT_MODE.TIME_NEW2OLD);
-  const [eventList, setEventList] = useState([])
-  const [renderList, setRenderList] = useState([])
-
-  const [timeFromNow, setTimeFromNow] = useState(true)
+  const [eventList, setEventList] = useState([]);
   const [sum, setSum] = useState(0);
+
+  // table
+  const [sortMode, setSortMode] = useState(SORT_MODE.TIME_NEW2OLD);
+  const [renderList, setRenderList] = useState([]);
+  const [timeFromNow, setTimeFromNow] = useState(true);
+
+  // dialog
   const [openFriendDialog, setOpenFriendDialog] = useState(false);
-  const [openFriendEditDialog, setOpenFriendEditDialog] = useState(false);
-  const [openFriendPayBackDialog, setOpenFriendPayBackDialog] = useState(false);
   const [amountSign, setAmountSign] = useState(false);
   const [amount, setAmount] = useState('');
   const [comment, setComment] = useState('');
-  const [timeChartData, setTimeChartData] = useState([]);
-  const [amountChartData, setAmountChartData] = useState([]);
 
-  const [editSign, setEditSign] = useState(false);
+  const [openFriendEditDialog, setOpenFriendEditDialog] = useState(false);
   const [editAmount, setEditAmount] = useState('');
   const [editComment, setEditComment] = useState('');
+
+  const [openFriendPayBackDialog, setOpenFriendPayBackDialog] = useState(false);
   const [payBackSign, setPayBackSign] = useState(false);
   const [payBackAmount, setPayBackAmount] = useState(0);
   const [payBackComment, setPayBackComment] = useState('')
+  const [currentEventId, setCurrentEventId] = useState('');
+
+  // chart
+  const [timeChartData, setTimeChartData] = useState([]);
+  const [amountChartData, setAmountChartData] = useState([]);
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [anchorEl2, setAnchorEl2] = useState(null);
-  const [currentEventId, setCurrentEventId] = useState('');
   const [snackbarProp, setSnackbarProp] = useState({
     open: false,
     message: '',
     status: 'null'
   });
-
-  const history = useHistory();
-  const { currentUser } = useContext(AuthContext);
-  const { friend } = useParams();
-
-  const handleSort = (sortMode) => {
-    setAnchorEl2(null);
-    setSortMode(sortMode);
-    // if (sortMode === SORT_MODE[0]) {
-    // }
-    // else if (sortMode === SORT_MODE[1]) {
-    //   setDisplayMode(SORT_MODE[1])
-    //   const sortList = eventList.concat()
-    //   sortList.sort(function (a, b) {
-    //     return a.amount - b.amount
-    //   })
-    //   setSortedList(sortList)
-    // }
-    // else if (sortMode === SORT_MODE[2]) {
-    //   setDisplayMode(SORT_MODE[2])
-    //   const sortList = eventList.concat()
-    //   sortList.sort(function (a, b) {
-    //     return b.amount - a.amount
-    //   })
-    //   setSortedList(sortList)
-    // }
-    // else if (sortMode === SORT_MODE[3]) {
-    //   setDisplayMode(SORT_MODE[3])
-    //   const sortList = eventList.concat()
-    //   sortList.sort(function (a, b) {
-    //     return new Date(b.time) - new Date(a.time);
-    //   })
-    //   setSortedList(sortList)
-    // }
-  }
-
-  const handleFriendClose = () => {
-    setOpenFriendDialog(false)
-  };
-
-  const handleFriendSubmit = async () => {
-    const payload = {
-      creditor: amountSign ? friend : currentUser.username,
-      debtor: amountSign ? currentUser.username : friend,
-      amount: Number(amount),
-      description: comment,
-      type: 'PERSONAL'
-    }
-    setIsWaiting(true);
-    try {
-      const result = await agent.Event.createEvent(payload);
-      if (!result.data.success) {
-        setSnackbarProp({
-          open: true,
-          message: result.data.error,
-          status: 'error'
-        })
-      }
-      else {
-        setOpenFriendDialog(false);
-        setAmount('');
-        setComment('');
-        getEventInfo();
-        setSnackbarProp({
-          open: true,
-          message: '交易新增成功',
-          status: 'success'
-        })
-      }
-      setIsWaiting(false);
-    } catch (error) {
-      setIsWaiting(false);
-      setOpenFriendDialog(false);
-      setAmount('');
-      setComment('');
-      alert(error)
-    }
-  };
 
   const getEventInfo = async () => {
     if (!currentUser.username) return
@@ -242,26 +172,6 @@ function Friend(props) {
       alert(error);
     }
   }
-
-  const handleEventMoreActionClick = (e, id, amount, comment) => {
-    setAnchorEl(e.currentTarget)
-    setCurrentEventId(id)
-    setEditSign((Number(amount) >= 0) ? false : true)
-    setEditAmount((Number(amount) >= 0) ? Number(amount) : (-1) * Number(amount))
-    setEditComment(comment)
-    setPayBackSign((Number(amount) >= 0) ? false : true)
-    setPayBackAmount((Number(amount) >= 0) ? Number(amount) : (-1) * Number(amount))
-    setPayBackComment((Number(amount) >= 0) ? `收錢：${comment}` : `還錢：${comment}`)
-  }
-
-  const handleEditClick = () => {
-    setAnchorEl(null)
-    setOpenFriendEditDialog(true);
-  }
-
-  const handleFriendEditClose = () => {
-    setOpenFriendEditDialog(false)
-  };
 
   const handleFriendEditSubmit = async () => {
     const payload = {
@@ -302,13 +212,43 @@ function Friend(props) {
     }
   };
 
-  const handlePayBackClick = () => {
-    setAnchorEl(null)
-    setOpenFriendPayBackDialog(true);
-  }
-
-  const handleFriendPayBackClose = () => {
-    setOpenFriendPayBackDialog(false)
+  const handleFriendSubmit = async () => {
+    const payload = {
+      creditor: amountSign ? friend : currentUser.username,
+      debtor: amountSign ? currentUser.username : friend,
+      amount: Number(amount),
+      description: comment,
+      type: 'PERSONAL'
+    }
+    setIsWaiting(true);
+    try {
+      const result = await agent.Event.createEvent(payload);
+      if (!result.data.success) {
+        setSnackbarProp({
+          open: true,
+          message: result.data.error,
+          status: 'error'
+        })
+      }
+      else {
+        setOpenFriendDialog(false);
+        setAmount('');
+        setComment('');
+        getEventInfo();
+        setSnackbarProp({
+          open: true,
+          message: '交易新增成功',
+          status: 'success'
+        })
+      }
+      setIsWaiting(false);
+    } catch (error) {
+      setIsWaiting(false);
+      setOpenFriendDialog(false);
+      setAmount('');
+      setComment('');
+      alert(error)
+    }
   };
 
   const handleFriendPayBackSubmit = async () => {
@@ -353,6 +293,31 @@ function Friend(props) {
     }
   };
 
+  const handleSort = (sortMode) => {
+    setAnchorEl2(null);
+    setSortMode(sortMode);
+  }
+
+  const handleEventMoreActionClick = (e, id, amount, comment) => {
+    setAnchorEl(e.currentTarget)
+    setCurrentEventId(id)
+    setEditAmount((Number(amount) >= 0) ? Number(amount) : (-1) * Number(amount))
+    setEditComment(comment)
+    setPayBackSign((Number(amount) >= 0) ? false : true)
+    setPayBackAmount((Number(amount) >= 0) ? Number(amount) : (-1) * Number(amount))
+    setPayBackComment((Number(amount) >= 0) ? `收錢：${comment}` : `還錢：${comment}`)
+  }
+
+  const handleEditClick = () => {
+    setAnchorEl(null)
+    setOpenFriendEditDialog(true);
+  }
+
+  const handlePayBackClick = () => {
+    setAnchorEl(null)
+    setOpenFriendPayBackDialog(true);
+  }
+
   useEffect(() => {
     getEventInfo();
   }, [])
@@ -366,6 +331,7 @@ function Friend(props) {
     setSum(total)
   }, [eventList])
 
+  // handle sort mode
   useEffect(() => {
     if (!eventList) return;
     let sortedList = [...eventList];
@@ -691,7 +657,7 @@ function Friend(props) {
       {/* new event dialog */}
       <Dialog
         open={openFriendDialog}
-        onClose={handleFriendClose}
+        onClose={() => setOpenFriendDialog(false)}
         maxWidth="md"
       >
         <DialogTitle>新增交易</DialogTitle>
@@ -740,7 +706,7 @@ function Friend(props) {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleFriendClose} color="primary">
+          <Button onClick={() => setOpenFriendDialog(false)} color="primary">
             取消
           </Button>
           <Button
@@ -760,7 +726,7 @@ function Friend(props) {
       {/* edit event dialog */}
       <Dialog
         open={openFriendEditDialog}
-        onClose={handleFriendEditClose}
+        onClose={() => setOpenFriendEditDialog(false)}
         maxWidth="md"
       >
         <DialogTitle>編輯交易</DialogTitle>
@@ -787,7 +753,7 @@ function Friend(props) {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleFriendEditClose} color="primary">
+          <Button onClick={() => setOpenFriendEditDialog(false)} color="primary">
             取消
           </Button>
           <Button
@@ -807,7 +773,7 @@ function Friend(props) {
       {/* pay back event dialog */}
       <Dialog
         open={openFriendPayBackDialog}
-        onClose={handleFriendPayBackClose}
+        onClose={() => setOpenFriendPayBackDialog(false)}
         maxWidth="md"
       >
         <DialogTitle>{payBackSign ? `還給${friend}` : `向${friend}收取`}</DialogTitle>
@@ -833,7 +799,7 @@ function Friend(props) {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleFriendPayBackClose} color="primary">
+          <Button onClick={() => setOpenFriendPayBackDialog(false)} color="primary">
             取消
         </Button>
           <Button

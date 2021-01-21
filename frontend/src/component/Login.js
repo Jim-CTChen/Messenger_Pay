@@ -145,10 +145,4 @@ function Login(props) {
   )
 }
 
-// Login.propTypes = {
-//   isWaiting: PropTypes.bool.isRequired,
-//   errorMsg: PropTypes.string.isRequired,
-//   login: PropTypes.func.isRequired
-// }
-
 export default Login

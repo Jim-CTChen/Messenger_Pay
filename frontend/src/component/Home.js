@@ -95,109 +95,57 @@ const sign = [
 
 function Home(props) {
   const { classes } = props;
+  const { currentUser } = useContext(AuthContext);
+  const history = useHistory();
 
   const [isWaiting, setIsWaiting] = useState(false);
   const [posAmount, setPosAmount] = useState(0);
   const [negAmount, setNegAmount] = useState(0);
   const [totalAmount, setTotalAmount] = useState(0);
-  const [tabValue, setTabValue] = useState(0)
-  const [filter, setFilter] = useState(FILTER[0])
+  const [tabValue, setTabValue] = useState(0);
+  const [filter, setFilter] = useState(FILTER[0]);
+  const [friendList, setFriendList] = useState([]);
+  const [groupList, setGroupList] = useState([]);
+
+  // dialog
   const [openFriendDialog, setOpenFriendDialog] = useState(false);
   const [name, setName] = useState('');
   const [amountSign, setAmountSign] = useState(false);
   const [amount, setAmount] = useState('');
   const [comment, setComment] = useState('');
+
   const [openGroupDialog, setOpenGroupDialog] = useState(false);
   const [groupName, setGroupName] = useState('');
   const [groupUsers, setGroupUsers] = useState('');
-  const [friendList, setFriendList] = useState([]);
-  const [groupList, setGroupList] = useState([]);
+
   const [snackbarProp, setSnackbarProp] = useState({
     open: false,
     message: '',
     status: 'null'
   });
 
-  const history = useHistory();
-  const { currentUser } = useContext(AuthContext);
-
-  const handleTabChange = (e, value) => {
-    setTabValue(value)
-    setFilter(FILTER[value])
-  }
-
-  const handleIsLogin = () => {
-    if (!currentUser.isLogin) {
-      history.replace('/login');
-    }
-  }
-
-  useEffect(() => {
-    handleIsLogin();
-  }, [history])
-
-  const handleAmountCalculate = () => {
-    let pos = 0
-    let neg = 0
-    if (friendList.length === 0) return
-    friendList.forEach(friend => {
-      if (friend.balance >= 0) pos += friend.balance
-      else neg += friend.balance
-    })
-    setPosAmount(pos)
-    setNegAmount(Math.abs(neg))
-    setTotalAmount(pos + neg)
-  }
-
-  useEffect(() => {
-    handleAmountCalculate();
-  }, [friendList, groupList])
-
-  const handleFriendClose = () => {
-    setOpenFriendDialog(false)
-  };
-
-  const handleFriendSubmit = async () => {
-    const payload = {
-      creditor: amountSign ? name : currentUser.username,
-      debtor: amountSign ? currentUser.username : name,
-      amount: Number(amount),
-      description: comment,
-      type: 'PERSONAL'
-    }
+  const getUserInfo = async () => {
+    if (!currentUser.isLogin) return
+    setIsWaiting(true);
     try {
-      const result = await agent.Event.createEvent(payload);
+      const result = await agent.User.getUserInfo(currentUser.username);
       if (!result.data.success) {
         setSnackbarProp({
           open: true,
           message: result.data.error,
           status: 'error'
-        })
+        });
       }
       else {
-        setOpenFriendDialog(false);
-        setName('');
-        setAmount('');
-        setComment('');
-        getUserInfo();
-        setSnackbarProp({
-          open: true,
-          message: '交易新增成功',
-          status: 'success'
-        })
+        setFriendList(result.data.data.friends);
+        setGroupList(result.data.data.groups);
       }
+      setIsWaiting(false);
     } catch (error) {
-      setOpenFriendDialog(false);
-      setName('');
-      setAmount('');
-      setComment('');
-      alert(error)
+      setIsWaiting(false);
+      alert(error);
     }
-  };
-
-  const handleGroupClose = () => {
-    setOpenGroupDialog(false)
-  };
+  }
 
   const handleGroupSubmit = async () => {
     const users = groupUsers.split(' ');
@@ -244,29 +192,68 @@ function Home(props) {
       setGroupUsers('');
       alert(error)
     }
-  };
+  }
 
-  const getUserInfo = async () => {
-    if (!currentUser.isLogin) return
-    setIsWaiting(true);
+  const handleFriendSubmit = async () => {
+    const payload = {
+      creditor: amountSign ? name : currentUser.username,
+      debtor: amountSign ? currentUser.username : name,
+      amount: Number(amount),
+      description: comment,
+      type: 'PERSONAL'
+    }
     try {
-      const result = await agent.User.getUserInfo(currentUser.username);
+      const result = await agent.Event.createEvent(payload);
       if (!result.data.success) {
         setSnackbarProp({
           open: true,
           message: result.data.error,
           status: 'error'
-        });
+        })
       }
       else {
-        setFriendList(result.data.data.friends);
-        setGroupList(result.data.data.groups);
+        setOpenFriendDialog(false);
+        setName('');
+        setAmount('');
+        setComment('');
+        getUserInfo();
+        setSnackbarProp({
+          open: true,
+          message: '交易新增成功',
+          status: 'success'
+        })
       }
-      setIsWaiting(false);
     } catch (error) {
-      setIsWaiting(false);
-      alert(error);
+      setOpenFriendDialog(false);
+      setName('');
+      setAmount('');
+      setComment('');
+      alert(error)
     }
+  }
+
+  const handleIsLogin = () => {
+    if (!currentUser.isLogin) {
+      history.replace('/login');
+    }
+  }
+
+  const handleTabChange = (e, value) => {
+    setTabValue(value)
+    setFilter(FILTER[value])
+  }
+
+  const handleAmountCalculate = () => {
+    let pos = 0
+    let neg = 0
+    if (friendList.length === 0) return
+    friendList.forEach(friend => {
+      if (friend.balance >= 0) pos += friend.balance
+      else neg += friend.balance
+    })
+    setPosAmount(pos)
+    setNegAmount(Math.abs(neg))
+    setTotalAmount(pos + neg)
   }
 
   const handleFriendClick = (name) => {
@@ -278,11 +265,20 @@ function Home(props) {
   }
 
   useEffect(() => {
+    handleAmountCalculate();
+  }, [friendList, groupList])
+
+  useEffect(() => {
+    handleIsLogin();
+  }, [history])
+
+  useEffect(() => {
     getUserInfo();
   }, [])
 
   return (
     <>
+      {/* sum */}
       <Grid container spacing={3} className={classes.paper}>
         <Grid item xs>
           <Paper className={classes.blockPaper}>
@@ -333,6 +329,7 @@ function Home(props) {
         </Grid>
       </Grid>
 
+      {/* friends and groups */}
       <Grid container spacing={3} className={classes.paper}>
         <Grid item xs>
           <Paper className={classes.paper} color="primary">
@@ -428,9 +425,10 @@ function Home(props) {
         </Grid>
       </Grid>
 
+      {/* new event dialog */}
       <Dialog
         open={openFriendDialog}
-        onClose={handleFriendClose}
+        onClose={() => setOpenFriendDialog(false)}
         maxWidth="md"
       >
         <DialogTitle>新增交易</DialogTitle>
@@ -479,7 +477,7 @@ function Home(props) {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleFriendClose} color="primary">
+          <Button onClick={() => setOpenFriendDialog(false)} color="primary">
             取消
           </Button>
           <Button
@@ -496,9 +494,10 @@ function Home(props) {
         </DialogActions>
       </Dialog>
 
+      {/* new group dialog */}
       <Dialog
         open={openGroupDialog}
-        onClose={handleGroupClose}
+        onClose={() => setOpenGroupDialog(false)}
         maxWidth="md"
       >
         <DialogTitle>新增群組</DialogTitle>
@@ -524,7 +523,7 @@ function Home(props) {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleGroupClose} color="primary">
+          <Button onClick={() => setOpenGroupDialog(false)} color="primary">
             取消
           </Button>
           <Button
@@ -536,6 +535,7 @@ function Home(props) {
           </Button>
         </DialogActions>
       </Dialog>
+
       <Snackbar
         open={snackbarProp.open}
         autoHideDuration={2000}

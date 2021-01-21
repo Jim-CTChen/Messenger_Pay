@@ -1,5 +1,5 @@
 import { React, useState, useEffect, useContext } from 'react';
-import { useHistory, useParams, useLocation } from 'react-router-dom'
+import { useHistory, useParams } from 'react-router-dom'
 import dayjs from 'dayjs'
 import TimeAgo from 'javascript-time-ago'
 import PropTypes from 'prop-types';
@@ -10,7 +10,6 @@ import Backdrop from '@material-ui/core/Backdrop'
 import CircularProgress from '@material-ui/core/CircularProgress'
 import { withStyles } from '@material-ui/core/styles';
 import Divider from '@material-ui/core/Divider'
-import Avatar from '@material-ui/core/Avatar';
 import Box from '@material-ui/core/Box'
 import IconButton from '@material-ui/core/IconButton';
 import AddIcon from '@material-ui/icons/Add';
@@ -23,7 +22,6 @@ import FilterListIcon from '@material-ui/icons/FilterList';
 import AttachMoneyIcon from '@material-ui/icons/AttachMoney';
 import Button from '@material-ui/core/Button'
 import Typography from '@material-ui/core/Typography'
-import { Icon, useEventCallback } from '@material-ui/core';
 import Snackbar from '@material-ui/core/Snackbar';
 import Alert from '@material-ui/lab/Alert';
 // Dialog
@@ -31,28 +29,22 @@ import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem';
-import Chip from '@material-ui/core/Chip'
 
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
-import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 
 import Grid from '@material-ui/core/Grid';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-import ListItemAvatar from '@material-ui/core/ListItemAvatar';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import Collapse from '@material-ui/core/Collapse';
-import InboxIcon from '@material-ui/icons/MoveToInbox';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 
@@ -77,15 +69,6 @@ const styles = (theme) => ({
     padding: theme.spacing(2),
     textAlign: 'center',
   },
-  typography: {
-    width: '100%',
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: 'rgba(0, 0, 0, 0.54)',
-    marginTop: theme.spacing(1),
-    marginBottom: theme.spacing(1)
-  },
   divider: {
     backgroundColor: '#e4e4e4',
     height: '2px'
@@ -93,9 +76,6 @@ const styles = (theme) => ({
   listItem: {
     margin: '3px',
     display: 'flex'
-  },
-  box: {
-    margin: '3px'
   },
   red: {
     color: 'red'
@@ -115,67 +95,83 @@ const TAB_VALUE = [
 
 function Group(props) {
   const { classes } = props;
+  const { currentUser } = useContext(AuthContext);
+  const { groupName, id } = useParams();
+  const history = useHistory();
 
   const [isWaiting, setIsWaiting] = useState(false);
   const [tabValue, setTabValue] = useState(0);
+  const [eventList, setEventList] = useState([]);
+  const [sum, setSum] = useState(0);
+
+  // memberList
   const [memberList, setMemberList] = useState([]);
+  const [groupMemberOpen, setGroupMemberOpen] = useState(false);
+  const [memberBalanceForUser, setMemberBalanceForUser] = useState([])
+
+  // table
   const [sortMode, setSortMode] = useState(SORT_MODE.TIME_NEW2OLD);
   const [filterMode, setFilterMode] = useState(FILTER_MODE.ALL);
-  const [eventList, setEventList] = useState([]);
   const [filteredList, setFilteredList] = useState([]);
   const [renderList, setRenderList] = useState([]);
-
-  const [memberBalance, setMemberBalance] = useState([])
-  const [memberBalanceForUser, setMemberBalanceForUser] = useState([])
   const [timeFromNow, setTimeFromNow] = useState(true);
-  const [sum, setSum] = useState(0);
-  const [groupMemberOpen, setGroupMemberOpen] = useState(false);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [openEditDialog, setOpenEditDialog] = useState(false);
-  const [openPayBackDialog, setOpenPayBackDialog] = useState(false);
+
+  // dialog
+  const [openNewDialog, setOpenNewDialog] = useState(false);
   const [creditor, setCreditor] = useState('');
   const [debtor, setDebtor] = useState('');
   const [amount, setAmount] = useState('');
   const [comment, setComment] = useState('');
-  const [openAddUserDialog, setOpenAddUserDialog] = useState(false);
-  const [addUser, setAddUser] = useState('');
-  const [openRemoveUserDialog, setOpenRemoveUserDialog] = useState(false);
-  const [removeUser, setRemoveUser] = useState('');
-  const [timeChartData, setTimeChartData] = useState([]);
-  const [amountChartData, setAmountChartData] = useState([]);
 
+  const [openEditDialog, setOpenEditDialog] = useState(false);
   const [editAmount, setEditAmount] = useState('');
   const [editComment, setEditComment] = useState('');
+
+  const [openPayBackDialog, setOpenPayBackDialog] = useState(false);
   const [payBackAmount, setPayBackAmount] = useState(0);
   const [payBackComment, setPayBackComment] = useState('');
   const [currentCreditor, setCurrentCreditor] = useState('');
   const [currentDebtor, setCurrentDebtor] = useState('');
+  const [currentEventId, setCurrentEventId] = useState('');
+
+  const [openAddUserDialog, setOpenAddUserDialog] = useState(false);
+  const [addUser, setAddUser] = useState('');
+
+  const [openRemoveUserDialog, setOpenRemoveUserDialog] = useState(false);
+  const [removeUser, setRemoveUser] = useState('');
+
+  // chart
+  const [timeChartData, setTimeChartData] = useState([]);
+  const [amountChartData, setAmountChartData] = useState([]);
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [anchorEl2, setAnchorEl2] = useState(null);
   const [anchorEl3, setAnchorEl3] = useState(null);
-  const [currentEventId, setCurrentEventId] = useState('');
   const [snackbarProp, setSnackbarProp] = useState({
     open: false,
     message: '',
     status: 'null'
   });
 
-  const history = useHistory();
-  const { currentUser } = useContext(AuthContext);
-  const { groupName, id } = useParams();
-
-  const handleClick = () => {
-    setGroupMemberOpen(!groupMemberOpen);
-  };
-
-  const handleClose = () => {
-    setOpenDialog(false)
-  };
-
-  const handleAddUserClose = () => {
-    setOpenAddUserDialog(false)
-  };
+  const getGroupInfo = async () => {
+    if (!currentUser.username) return
+    setIsWaiting(true);
+    try {
+      const result = await agent.Group.getGroupEvent(currentUser.username, id);
+      if (!result.data.success) {
+        alert(result.data.error);
+        history.push('/home');
+      }
+      else {
+        setMemberList(result.data.data.users)
+        setEventList(result.data.data.events)
+      }
+      setIsWaiting(false);
+    } catch (error) {
+      setIsWaiting(false);
+      alert(error);
+    }
+  }
 
   const handleAddUser = async () => {
     const users = addUser.split(' ')
@@ -221,10 +217,6 @@ function Group(props) {
     }
   }
 
-  const handleRemoveUserClose = () => {
-    setOpenRemoveUserDialog(false)
-  };
-
   const handleRemoveUser = async () => {
     const payload = {
       groupId: id,
@@ -262,16 +254,6 @@ function Group(props) {
     }
   }
 
-  const handleSort = (sortMode) => {
-    setAnchorEl2(null)
-    setSortMode(sortMode);
-  }
-
-  const handleFilter = (filterMode) => {
-    setAnchorEl3(null);
-    setFilterMode(filterMode);
-  }
-
   const handleGroupSubmit = async () => {
     const payload = {
       creditor: creditor,
@@ -292,7 +274,7 @@ function Group(props) {
         })
       }
       else {
-        setOpenDialog(false);
+        setOpenNewDialog(false);
         setCreditor('');
         setDebtor('');
         setAmount('');
@@ -307,53 +289,13 @@ function Group(props) {
       setIsWaiting(false);
     } catch (error) {
       setIsWaiting(false);
-      setOpenDialog(false);
+      setOpenNewDialog(false);
       setCreditor('');
       setDebtor('');
       setAmount('');
       setComment('');
       alert(error)
     }
-  };
-
-  const getGroupInfo = async () => {
-    if (!currentUser.username) return
-    setIsWaiting(true);
-    try {
-      const result = await agent.Group.getGroupEvent(currentUser.username, id);
-      if (!result.data.success) {
-        alert(result.data.error);
-        history.push('/home');
-      }
-      else {
-        setMemberList(result.data.data.users)
-        setEventList(result.data.data.events)
-      }
-      setIsWaiting(false);
-    } catch (error) {
-      setIsWaiting(false);
-      alert(error);
-    }
-  }
-
-  const handleEventMoreActionClick = (e, id, creditor, debtor, amount, comment) => {
-    setAnchorEl(e.currentTarget)
-    setCurrentEventId(id)
-    setCurrentCreditor(creditor)
-    setCurrentDebtor(debtor)
-    setEditAmount(Number(amount))
-    setEditComment(comment)
-    setPayBackAmount(Number(amount))
-    setPayBackComment(`${debtor}還錢：${comment}`)
-  }
-
-  const handleEditClick = () => {
-    setAnchorEl(null)
-    setOpenEditDialog(true);
-  }
-
-  const handleEditClose = () => {
-    setOpenEditDialog(false)
   };
 
   const handleEditSubmit = async () => {
@@ -395,15 +337,6 @@ function Group(props) {
     }
   };
 
-  const handlePayBackClick = () => {
-    setAnchorEl(null)
-    setOpenPayBackDialog(true);
-  }
-
-  const handlePayBackClose = () => {
-    setOpenPayBackDialog(false)
-  };
-
   const handlePayBackSubmit = async () => {
     const payload = {
       creditor: currentDebtor,
@@ -443,6 +376,37 @@ function Group(props) {
       alert(error)
     }
   };
+
+  const handleSort = (sortMode) => {
+    setAnchorEl2(null)
+    setSortMode(sortMode);
+  }
+
+  const handleFilter = (filterMode) => {
+    setAnchorEl3(null);
+    setFilterMode(filterMode);
+  }
+
+  const handleEventMoreActionClick = (e, id, creditor, debtor, amount, comment) => {
+    setAnchorEl(e.currentTarget)
+    setCurrentEventId(id)
+    setCurrentCreditor(creditor)
+    setCurrentDebtor(debtor)
+    setEditAmount(Number(amount))
+    setEditComment(comment)
+    setPayBackAmount(Number(amount))
+    setPayBackComment(`${debtor}還錢：${comment}`)
+  }
+
+  const handleEditClick = () => {
+    setAnchorEl(null)
+    setOpenEditDialog(true);
+  }
+
+  const handlePayBackClick = () => {
+    setAnchorEl(null)
+    setOpenPayBackDialog(true);
+  }
 
   // handle filter mode
   useEffect(() => {
@@ -501,20 +465,17 @@ function Group(props) {
     getGroupInfo();
   }, [])
 
+  // calculate balance
   useEffect(() => {
     if (eventList.length === 0) return
     let total = 0
-    let balanceList = [];
     let balanceListForUser = [];
     for (let i = 0; i < memberList.length; i += 1) {
-      balanceList.push(0);
       balanceListForUser.push(0);
     }
     eventList.forEach(event => {
       let creditorIdx = memberList.findIndex(member => event.creditor === member);
       let debtorIdx = memberList.findIndex(member => event.debtor === member);
-      balanceList[creditorIdx] += event.amount;
-      balanceList[debtorIdx] -= event.amount;
       if (event.creditor === currentUser.username) {
         balanceListForUser[debtorIdx] += event.amount;
         total += event.amount;
@@ -525,7 +486,6 @@ function Group(props) {
       }
     })
     setSum(total)
-    setMemberBalance(balanceList);
     setMemberBalanceForUser(balanceListForUser);
   }, [eventList])
 
@@ -679,7 +639,7 @@ function Group(props) {
       <Grid container spacing={3} className={classes.paper}>
         <Grid item xs>
           <Paper className={classes.blockPaper} color="primary">
-            <ListItem button onClick={handleClick}>
+            <ListItem button onClick={() => setGroupMemberOpen(!groupMemberOpen)}>
               <ListItemText primary="群組成員" />
               {groupMemberOpen ? <ExpandLess /> : <ExpandMore />}
             </ListItem>
@@ -775,7 +735,7 @@ function Group(props) {
                     <IconButton onClick={() => setTimeFromNow(!timeFromNow)}>
                       <AccessTimeIcon />
                     </IconButton>
-                    <IconButton onClick={() => setOpenDialog(true)}>
+                    <IconButton onClick={() => setOpenNewDialog(true)}>
                       <AddIcon />
                     </IconButton>
                     <IconButton onClick={() => history.push('/home')}>
@@ -932,8 +892,8 @@ function Group(props) {
 
       {/* new event dialog */}
       <Dialog
-        open={openDialog}
-        onClose={handleClose}
+        open={openNewDialog}
+        onClose={() => setOpenNewDialog(false)}
         maxWidth="md"
       >
         <DialogTitle>新增交易</DialogTitle>
@@ -995,7 +955,7 @@ function Group(props) {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose} color="primary">
+          <Button onClick={() => setOpenNewDialog(false)} color="primary">
             取消
           </Button>
           <Button
@@ -1018,7 +978,7 @@ function Group(props) {
       {/* add member to group */}
       <Dialog
         open={openAddUserDialog}
-        onClose={handleAddUserClose}
+        onClose={() => setOpenAddUserDialog(false)}
         maxWidth="md"
       >
         <DialogTitle>新增成員</DialogTitle>
@@ -1033,7 +993,7 @@ function Group(props) {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleAddUserClose} color="primary">
+          <Button onClick={() => setOpenAddUserDialog(false)} color="primary">
             取消
           </Button>
           <Button
@@ -1049,7 +1009,7 @@ function Group(props) {
       {/* remove member from group */}
       <Dialog
         open={openRemoveUserDialog}
-        onClose={handleRemoveUserClose}
+        onClose={() => setOpenRemoveUserDialog(false)}
         maxWidth="xs"
         fullWidth
       >
@@ -1073,7 +1033,7 @@ function Group(props) {
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={handleRemoveUserClose} color="primary">
+          <Button onClick={() => setOpenRemoveUserDialog(false)} color="primary">
             取消
           </Button>
           <Button
@@ -1089,7 +1049,7 @@ function Group(props) {
       {/* edit event dialog */}
       <Dialog
         open={openEditDialog}
-        onClose={handleEditClose}
+        onClose={() => setOpenEditDialog(false)}
         maxWidth="md"
       >
         <DialogTitle>編輯交易</DialogTitle>
@@ -1116,7 +1076,7 @@ function Group(props) {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleEditClose} color="primary">
+          <Button onClick={() => setOpenEditDialog(false)} color="primary">
             取消
         </Button>
           <Button
@@ -1136,7 +1096,7 @@ function Group(props) {
       {/* pay back event dialog */}
       <Dialog
         open={openPayBackDialog}
-        onClose={handlePayBackClose}
+        onClose={() => setOpenPayBackDialog(false)}
         maxWidth="md"
       >
         <DialogTitle>{currentDebtor === currentUser.username ? `${currentDebtor}還給${currentCreditor}` : `${currentCreditor}向${currentDebtor}收取`}</DialogTitle>
@@ -1162,7 +1122,7 @@ function Group(props) {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handlePayBackClose} color="primary">
+          <Button onClick={() => setOpenPayBackDialog(false)} color="primary">
             取消
         </Button>
           <Button
