@@ -20,8 +20,8 @@ import MoreVertIcon from '@material-ui/icons/MoreVert';
 import SortByAlphaIcon from '@material-ui/icons/SortByAlpha';
 import FilterListIcon from '@material-ui/icons/FilterList';
 import AttachMoneyIcon from '@material-ui/icons/AttachMoney';
-import Button from '@material-ui/core/Button'
-import Typography from '@material-ui/core/Typography'
+import Button from '@material-ui/core/Button';
+import Typography from '@material-ui/core/Typography';
 import Snackbar from '@material-ui/core/Snackbar';
 import Alert from '@material-ui/lab/Alert';
 // Dialog
@@ -30,7 +30,7 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import Menu from '@material-ui/core/Menu'
+import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 
 import Table from '@material-ui/core/Table';
@@ -50,11 +50,11 @@ import ExpandMore from '@material-ui/icons/ExpandMore';
 
 import MyPieChart from '../usage/MyPieChart';
 import User from '../usage/User';
-import { AuthContext } from '../../AuthContext'
-import agent from '../../agent'
-import constants from '../../constants/index'
+import { AuthContext } from '../../AuthContext';
+import agent from '../../agent';
+import constants from '../../constants/index';
 
-const timeAgo = new TimeAgo()
+const timeAgo = new TimeAgo();
 
 const styles = (theme) => ({
   backdrop: {

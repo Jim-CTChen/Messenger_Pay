@@ -1,25 +1,25 @@
 import { React, useState, useEffect, useContext } from 'react';
-import { useHistory, useParams } from 'react-router-dom'
-import dayjs from 'dayjs'
-import TimeAgo from 'javascript-time-ago'
-import zh from 'javascript-time-ago/locale/zh-Hant'
+import { useHistory, useParams } from 'react-router-dom';
+import dayjs from 'dayjs';
+import TimeAgo from 'javascript-time-ago';
+import zh from 'javascript-time-ago/locale/zh-Hant';
 import PropTypes from 'prop-types';
 import Paper from '@material-ui/core/Paper';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import { withStyles } from '@material-ui/core/styles';
-import Divider from '@material-ui/core/Divider'
-import Box from '@material-ui/core/Box'
+import Divider from '@material-ui/core/Divider';
+import Box from '@material-ui/core/Box';
 import IconButton from '@material-ui/core/IconButton';
 import AddIcon from '@material-ui/icons/Add';
 import HomeIcon from '@material-ui/icons/Home';
 import AccessTimeIcon from '@material-ui/icons/AccessTime';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import SortByAlphaIcon from '@material-ui/icons/SortByAlpha';
-import Button from '@material-ui/core/Button'
-import Backdrop from '@material-ui/core/Backdrop'
-import CircularProgress from '@material-ui/core/CircularProgress'
-import Typography from '@material-ui/core/Typography'
+import Button from '@material-ui/core/Button';
+import Backdrop from '@material-ui/core/Backdrop';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import Typography from '@material-ui/core/Typography';
 
 import Snackbar from '@material-ui/core/Snackbar';
 import Alert from '@material-ui/lab/Alert';
@@ -29,9 +29,9 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import Menu from '@material-ui/core/Menu'
+import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
-import Chip from '@material-ui/core/Chip'
+import Chip from '@material-ui/core/Chip';
 
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -43,9 +43,9 @@ import Grid from '@material-ui/core/Grid';
 
 import MyPieChart from '../usage/MyPieChart';
 import User from '../usage/User';
-import { AuthContext } from '../../AuthContext'
+import { AuthContext } from '../../AuthContext';
 import agent from '../../agent';
-import constants from '../../constants/index'
+import constants from '../../constants/index';
 
 TimeAgo.addDefaultLocale(zh);
 const timeAgo = new TimeAgo();
