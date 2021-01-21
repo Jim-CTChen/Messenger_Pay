@@ -695,7 +695,10 @@ function Group(props) {
                 </Box>
                 {memberList.map((user, idx) => (
                   <ListItem className={classes.listItem} key={idx}>
-                    <User user={user} />
+                    <User user={user} onClick={() => {
+                      if (user === currentUser.username) history.push('/account');
+                      else history.push(`/friend/${user}`);
+                    }} />
                     <ListItemSecondaryAction>
                       {
                         (user === currentUser.username |
