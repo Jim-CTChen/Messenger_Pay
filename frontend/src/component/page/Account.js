@@ -9,10 +9,13 @@ import Grid from '@material-ui/core/Grid';
 import Chip from '@material-ui/core/Chip';
 import HomeIcon from '@material-ui/icons/Home';
 import AccessTimeIcon from '@material-ui/icons/AccessTime';
+import SortByAlphaIcon from '@material-ui/icons/SortByAlpha';
 import IconButton from '@material-ui/core/IconButton';
 import Box from '@material-ui/core/Box';
 import Backdrop from '@material-ui/core/Backdrop'
 import CircularProgress from '@material-ui/core/CircularProgress'
+import Menu from '@material-ui/core/Menu'
+import MenuItem from '@material-ui/core/MenuItem';
 import { withStyles } from '@material-ui/core/styles';
 
 import Divider from '@material-ui/core/Divider';
@@ -76,6 +79,7 @@ const styles = (theme) => ({
 });
 
 const EVENT_TYPE = constants.EVENT_TYPE;
+const SORT_MODE = constants.SORT_MODE;
 
 function Account(props) {
   const { classes } = props;
@@ -83,9 +87,12 @@ function Account(props) {
   const history = useHistory();
 
   const [isWaiting, setIsWaiting] = useState(false);
+  const [sortMode, setSortMode] = useState(SORT_MODE.TIME_NEW2OLD);
   const [eventList, setEventList] = useState([]);
-  const [timeFromNow, setTimeFromNow] = useState(false);
+  const [renderList, setRenderList] = useState([]);
+  const [timeFromNow, setTimeFromNow] = useState(true);
   const [balance, setBalance] = useState(0);
+  const [anchorEl2, setAnchorEl2] = useState(null);
 
   const getAllEvent = async () => {
     if (!currentUser || !currentUser.username) return
@@ -103,9 +110,47 @@ function Account(props) {
     }
   }
 
+  const handleSort = (sortMode) => {
+    setAnchorEl2(null);
+    setSortMode(sortMode);
+  }
+
   useEffect(() => {
     getAllEvent();
   }, [])
+
+  // handle sort mode
+  useEffect(() => {
+    if (!eventList) return;
+    let sortedList = [...eventList];
+    switch (sortMode) {
+      case SORT_MODE.TIME_NEW2OLD:
+        sortedList.sort(function (a, b) {
+          return new Date(b.time) - new Date(a.time);
+        })
+        break;
+      case SORT_MODE.TIME_OLD2NEW:
+        sortedList.sort(function (a, b) {
+          return new Date(a.time) - new Date(b.time);
+        })
+        break;
+      case SORT_MODE.AMOUNT_H2L:
+        sortedList.sort(function (a, b) {
+          return b.amount - a.amount;
+        })
+        break;
+      case SORT_MODE.AMOUNT_L2H:
+        sortedList.sort(function (a, b) {
+          return a.amount - b.amount;
+        })
+        break;
+      default:
+        sortedList.sort(function (a, b) {
+          return new Date(b.time) - new Date(a.time);
+        })
+    }
+    setRenderList(sortedList);
+  }, [eventList, sortMode])
 
   return (
     <>
@@ -139,6 +184,9 @@ function Account(props) {
             <Divider className={classes.divider} />
             <>
               <Box mx={2} mt={1} align='right'>
+                <IconButton onClick={(e) => setAnchorEl2(e.currentTarget)}>
+                  <SortByAlphaIcon />
+                </IconButton>
                 <IconButton onClick={() => setTimeFromNow(!timeFromNow)}>
                   <AccessTimeIcon />
                 </IconButton>
@@ -165,7 +213,7 @@ function Account(props) {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {eventList.map((event, id) => (
+                  {renderList.map((event, id) => (
                     <TableRow key={id}>
                       <TableCell align="center">
                         <User user={event.friend} onClick={() => history.push(`/friend/${event.friend}`)} />
@@ -195,6 +243,27 @@ function Account(props) {
           </Paper>
         </Grid>
       </Grid>
+      <Menu
+        id="sort-list-menu"
+        anchorEl={anchorEl2}
+        open={Boolean(anchorEl2)}
+        onClose={() => setAnchorEl2(null)}
+        keepMounted
+        getContentAnchorEl={null}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'center'
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'center'
+        }}
+      >
+        <MenuItem onClick={() => handleSort(SORT_MODE.TIME_NEW2OLD)}>時間最新(預設)</MenuItem>
+        <MenuItem onClick={() => handleSort(SORT_MODE.TIME_OLD2NEW)}>時間最早</MenuItem>
+        <MenuItem onClick={() => handleSort(SORT_MODE.AMOUNT_L2H)}>金額由小到大</MenuItem>
+        <MenuItem onClick={() => handleSort(SORT_MODE.AMOUNT_H2L)}>金額由大到小</MenuItem>
+      </Menu>
       <Backdrop className={classes.backdrop} open={isWaiting}>
         <CircularProgress color="inherit" />
       </Backdrop>

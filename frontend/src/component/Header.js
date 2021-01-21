@@ -115,7 +115,13 @@ function Header(props) {
             </Box>
             <Box style={{ display: 'flex', alignItems: 'center' }}>
               <Box mr={2} ml={2}>
-                <Button className={classes.button} variant="outlined" color="inherit" size="small">
+                <Button
+                  className={classes.button}
+                  variant="outlined"
+                  color="inherit"
+                  size="small"
+                  onClick={() => history.push('/about')}
+                >
                   About
                 </Button>
               </Box>

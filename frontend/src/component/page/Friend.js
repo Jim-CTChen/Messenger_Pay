@@ -333,12 +333,12 @@ function Friend(props) {
         break;
       case SORT_MODE.AMOUNT_H2L:
         sortedList.sort(function (a, b) {
-          return b.amount - a.amount
+          return b.amount - a.amount;
         })
         break;
       case SORT_MODE.AMOUNT_L2H:
         sortedList.sort(function (a, b) {
-          return a.amount - b.amount
+          return a.amount - b.amount;
         })
         break;
       default:
@@ -347,7 +347,6 @@ function Friend(props) {
         })
     }
     setRenderList(sortedList);
-
   }, [eventList, sortMode])
 
   // parse chart data
