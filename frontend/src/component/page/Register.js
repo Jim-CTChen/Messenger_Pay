@@ -45,7 +45,11 @@ function Register(props) {
       const result = await agent.User.createUser(body);
       setIsWaiting(false);
       if (result.data.success) {
-        setCurrentUser({ ...result.data.data, isLogin: true });
+        await agent.Auth.login({
+          username: username,
+          password: password
+        })
+        setCurrentUser({ username: username, isLogin: true, isTokenValid: true });
         history.push('/');
       } else {
         alert(result.data.error);
