@@ -1,7 +1,6 @@
 # Messenger_Pay
-## Web Programming 109-1 Final Project
 
-### [109-1] Web Programming Final
+## [109-1] Web Programming Final
 #### 專題題目名稱：(Group 75) Messenger Pay
 #### Deploy 連結：https://messenger-pay.herokuapp.com/
 #### Demo影片：https://youtu.be/lmtkzo79Pfs
@@ -14,7 +13,9 @@
 #### GITHUB LINK：隱私問題不方便公開
 #### 使用與參考之框架/模組/原始碼：
 **Frontend：** react, axios, material-ui, dayjs, javascript-time-ago, seedrandom, bootstrap, react-minimal-pie-chart
+
 **Backend：** express, body-parser, cookie-parser, cors, dotenv-defaults, jsonwebtoken
+
 **DB：** mongoDB& mongoose
 #### 心得：
 陳俊廷
