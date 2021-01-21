@@ -3,7 +3,6 @@ import PeopleIcon from '@material-ui/icons/People';
 import Home from '../component/page/Home'
 import Friend from '../component/page/Friend'
 import Group from '../component/page/Group'
-import Setting from '../component/page/Setting'
 import About from '../component/page/About'
 import Template from '../component/page/template'
 import Account from '../component/page/Account'
@@ -21,10 +20,9 @@ export default {
     { path: '/friend/:friend', name: 'friend', component: Friend },
 
     // 其他
-    { path: '/setting', name: 'setting', component: Setting },
     { path: '/about', name: 'about', component: About },
     { path: '/account', name: 'account', component: Account },
-    { path: '/template', name: 'template', component: Template },
+    // { path: '/template', name: 'template', component: Template },
   ],
   nav_items: [
     {
