@@ -71,7 +71,7 @@ function Login(props) {
     } catch (e) {
       setCurrentUser(null);
       setIsWaitingAuth(false);
-      alert(e);
+      console.log(e);
     }
   }
 
