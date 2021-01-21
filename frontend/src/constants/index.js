@@ -16,10 +16,6 @@ const EVENT_TYPE = {
   },
 }
 
-// const SORT_MODE = [
-//   'default', 'amountL2H', 'amountH2L', 'timeNew2Old'
-// ]
-
 const SORT_MODE = {
   TIME_NEW2OLD: 0,
   TIME_OLD2NEW: 1,

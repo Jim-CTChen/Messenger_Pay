@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useContext } from 'react'
-import PropTypes from 'prop-types'
 import { useHistory } from 'react-router-dom'
 import Box from '@material-ui/core/Box'
 import TextField from '@material-ui/core/TextField'
@@ -9,12 +8,6 @@ import Backdrop from '@material-ui/core/Backdrop'
 import CircularProgress from '@material-ui/core/CircularProgress'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
-import {
-  Dialog,
-  DialogActions,
-  DialogTitle,
-  DialogContent
-} from '@material-ui/core'
 import { AuthContext } from '../AuthContext'
 import agent from '../agent'
 

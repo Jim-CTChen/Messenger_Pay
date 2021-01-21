@@ -28,7 +28,6 @@ import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Menu from '@material-ui/core/Menu'
 import MenuItem from '@material-ui/core/MenuItem';
@@ -37,7 +36,6 @@ import Chip from '@material-ui/core/Chip'
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
-import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 
@@ -65,15 +63,6 @@ const styles = (theme) => ({
     padding: theme.spacing(2),
     textAlign: 'center',
   },
-  typography: {
-    width: '100%',
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: 'rgba(0, 0, 0, 0.54)',
-    marginTop: theme.spacing(1),
-    marginBottom: theme.spacing(1)
-  },
   divider: {
     backgroundColor: '#e4e4e4',
     height: '2px'
@@ -81,9 +70,6 @@ const styles = (theme) => ({
   listItem: {
     margin: '3px',
     display: 'flex'
-  },
-  box: {
-    margin: '3px'
   },
   red: {
     color: 'red'
@@ -100,7 +86,6 @@ const sign = [
 
 const EVENT_TYPE = constants.EVENT_TYPE;
 const SORT_MODE = constants.SORT_MODE;
-const FILTER_MODE = constants.FILTER_MODE;
 
 const TAB_VALUE = [
   { key: 0, label: '歷史紀錄' },

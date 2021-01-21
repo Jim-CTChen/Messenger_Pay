@@ -7,12 +7,8 @@ import Typography from '@material-ui/core/Typography';
 import Paper from '@material-ui/core/Paper';
 import Grid from '@material-ui/core/Grid';
 import Chip from '@material-ui/core/Chip';
-import Avatar from '@material-ui/core/Avatar';
-import AddIcon from '@material-ui/icons/Add';
 import HomeIcon from '@material-ui/icons/Home';
 import AccessTimeIcon from '@material-ui/icons/AccessTime';
-import MoreVertIcon from '@material-ui/icons/MoreVert';
-import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 import Box from '@material-ui/core/Box';
 import Backdrop from '@material-ui/core/Backdrop'
@@ -23,7 +19,6 @@ import Divider from '@material-ui/core/Divider';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
-import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 
@@ -81,7 +76,6 @@ const styles = (theme) => ({
 });
 
 const EVENT_TYPE = constants.EVENT_TYPE;
-const COLOR_ARRAY = constants.COLOR_ARRAY;
 
 function Account(props) {
   const { classes } = props;
@@ -137,6 +131,7 @@ function Account(props) {
         </Grid>
       </Grid>
 
+      {/* history */}
       <Grid container spacing={3} className={classes.paper}>
         <Grid item xs>
           <Paper className={classes.paper} color="primary">
