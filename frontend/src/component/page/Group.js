@@ -48,11 +48,11 @@ import Collapse from '@material-ui/core/Collapse';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 
-import MyPieChart from './usage/MyPieChart';
-import User from './usage/User';
-import { AuthContext } from '../AuthContext'
-import agent from '../agent'
-import constants from '../constants/index'
+import MyPieChart from '../usage/MyPieChart';
+import User from '../usage/User';
+import { AuthContext } from '../../AuthContext'
+import agent from '../../agent'
+import constants from '../../constants/index'
 
 const timeAgo = new TimeAgo()
 

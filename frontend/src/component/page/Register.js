@@ -8,8 +8,8 @@ import Backdrop from '@material-ui/core/Backdrop';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
-import { AuthContext } from '../AuthContext';
-import agent from '../agent';
+import { AuthContext } from '../../AuthContext';
+import agent from '../../agent';
 
 const useStyles = makeStyles((theme) => ({
   paper: {

@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
-import { Switch, Route, Redirect, useHistory } from 'react-router-dom'
+import { Switch, Route, Redirect } from 'react-router-dom'
 import PropTypes from 'prop-types';
-import { createMuiTheme, ThemeProvider, withStyles } from '@material-ui/core/styles';
+import { ThemeProvider, withStyles } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Hidden from '@material-ui/core/Hidden';
 import Typography from '@material-ui/core/Typography';
 import Link from '@material-ui/core/Link';
 import Sidebar from '../component/Sidebar';
-import Content from '../component/Home';
 import Header from '../component/Header';
 import route from '../constants/route'
 import theme from '../mateiralUITheme'

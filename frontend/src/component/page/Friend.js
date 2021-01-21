@@ -41,11 +41,11 @@ import TableRow from '@material-ui/core/TableRow';
 
 import Grid from '@material-ui/core/Grid';
 
-import MyPieChart from './usage/MyPieChart';
-import User from './usage/User';
-import { AuthContext } from '../AuthContext'
-import agent from '../agent';
-import constants from '../constants/index'
+import MyPieChart from '../usage/MyPieChart';
+import User from '../usage/User';
+import { AuthContext } from '../../AuthContext'
+import agent from '../../agent';
+import constants from '../../constants/index'
 
 TimeAgo.addDefaultLocale(zh);
 const timeAgo = new TimeAgo();

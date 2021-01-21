@@ -1,12 +1,12 @@
 import SettingsIcon from '@material-ui/icons/Settings';
 import PeopleIcon from '@material-ui/icons/People';
-import Home from '../component/Home'
-import Friend from '../component/Friend'
-import Group from '../component/Group'
-import Setting from '../component/Setting'
-import About from '../component/About'
-import Template from '../component/template'
-import Account from '../component/Account'
+import Home from '../component/page/Home'
+import Friend from '../component/page/Friend'
+import Group from '../component/page/Group'
+import Setting from '../component/page/Setting'
+import About from '../component/page/About'
+import Template from '../component/page/template'
+import Account from '../component/page/Account'
 
 export default {
   route: [

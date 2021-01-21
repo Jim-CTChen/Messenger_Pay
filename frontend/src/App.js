@@ -2,8 +2,8 @@ import { Route, Switch } from 'react-router-dom'
 import './App.css';
 import AuthContext from './AuthContext'
 import Full from './container/Full'
-import Login from './component/Login'
-import Register from './component/Register'
+import Login from './component/page/Login'
+import Register from './component/page/Register'
 
 function App() {
   return (

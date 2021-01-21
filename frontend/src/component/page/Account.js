@@ -22,10 +22,10 @@ import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 
-import { AuthContext } from '../AuthContext'
-import User from './usage/User';
-import agent from '../agent'
-import constants from '../constants/index'
+import { AuthContext } from '../../AuthContext'
+import User from '../usage/User';
+import agent from '../../agent'
+import constants from '../../constants/index'
 
 const timeAgo = new TimeAgo();
 

@@ -29,9 +29,9 @@ import Alert from '@material-ui/lab/Alert';
 
 import Grid from '@material-ui/core/Grid';
 
-import { AuthContext } from '../AuthContext';
-import agent from '../agent';
-import User from './usage/User';
+import { AuthContext } from '../../AuthContext';
+import agent from '../../agent';
+import User from '../usage/User';
 
 const styles = (theme) => ({
   backdrop: {
